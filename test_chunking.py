@@ -4,10 +4,15 @@ import tiktoken
 from openai import OpenAI
 import os
 import json
+from sentence_transformers import SentenceTransformer
+from qdrant_client import QdrantClient
+from qdrant_client.models import VectorParams, Distance, PointStruct
 
 # install in terminal:
-# pip install pypdf spacy tiktoken openai
+# pip install pypdf spacy tiktoken openai sentence_transformers qdrant-client
 # python -m spacy download en_core_web_sm
+# set API key: $env:OPENAI_API_KEY="insert API key here"
+# check if API key is valid if needed: echo $env:OPENAI_API_KEY
 
 
 # process of chunking:
@@ -20,12 +25,13 @@ import json
 # 7. Embedding using e5-large
 
 
-# initialize spacy, tiktoken, openai
+# initialize spacy, tiktoken, openai, e5-large
 nlp = spacy.load("en_core_web_sm")
 enc = tiktoken.get_encoding("cl100k_base")
 client = OpenAI(
     api_key= os.environ.get("OPENAI_API_KEY")
 )
+e5_model = SentenceTransformer("intfloat/e5-large")
 
 
 # extract the text using pypdf
@@ -184,11 +190,49 @@ def pdf_to_embedded_chunks(pdf_path, llm_model = "gpt-5.1-codex", max_tokens = 3
 
     return embedding_chunks
 
-if __name__ == "__main__":
-    # response = client.models.list()
-    # print([m.id for m in response.data])
-    # print(repr(os.environ.get("OPENAI_API_KEY")))
+# embed similarity vectors using e5-large
+def embed_with_e5(chunks):
+    return e5_model.encode(
+        chunks, normalize_embeddings=True, show_progress_bar=True
+    )
 
-    pdf_file = "Downloads/OSI_model.pdf"
-    chunks = pdf_to_embedded_chunks(pdf_file)
-    print(json.dumps(chunks, indent=2))
+# add embeddings to qdrant
+def upload_to_qdrant(embedding_chunks, collection_name):
+    # create a collection (one for each class)
+    # add vectors (from embedding_chunks)
+
+    vectors = embed_with_e5([chunk["text_for_embedding"] for chunk in embedding_chunks])
+
+# RAG retrieval
+def query_qdrant(query, collection_name, top_k=5):
+    # top_k refers to the top vector similarity results for the query
+    # embed the query (must be a vector)
+    # conduct a qdrant search
+    # return results
+    query_embedding = embed_with_e5([f"query: {query}"])[0]
+
+# helper func so the LLM will only use the retrieved similarity vectors correcponding to the query
+def build_llm_context(results):
+    # join the context vectors and return
+    context = []
+    for r in results:
+        curr = r.payload
+        context.append(
+            f""" 
+            Title: {curr['title']}
+            Pages: {curr['pages']}
+            {curr['text']}
+            """
+        )
+    return "\n\n---\n\n".join(context)
+
+if __name__ == "__main__":
+    # testing API key is valid
+    client = OpenAI()
+    print(client.models.list())
+    print(repr(os.environ.get("OPENAI_API_KEY")))
+
+
+    # pdf_file = "Downloads/OSI_model.pdf"
+    # chunks = pdf_to_embedded_chunks(pdf_file)
+    # print(json.dumps(chunks, indent=2))
