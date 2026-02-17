@@ -13,3 +13,40 @@ For professors, the platform would:
 * Reduce the need for TAs or instructors to be available around the clock for clarification questions
 
 We believe this tool could improve student understanding while giving instructors more insight into where students struggle, ultimately supporting more efficient teaching and learning.
+
+
+## Installations
+```shell
+python -m pip install --upgrade pip
+```
+```shell
+pip install flask flask-cors
+```
+```shell
+pip install qdrant-client flask-cors
+```
+```shell
+pip install sentence-transformers
+```
+```shell
+pip install python-dotenv
+```
+
+## HOW-TO Run the Application
+### BACKEND
+
+```shell
+cd server
+```
+```shell
+python app.py
+```
+
+### FRONTEND
+
+```shell
+cd client
+```
+```shell
+npm start
+```
