@@ -1,5 +1,6 @@
-import "./App.css";
+import "./../App.css";
 import { useEffect, useState } from "react";
+import React from 'react';
 
 async function healthCheck() {
   const res = await fetch("/api/health");
@@ -7,7 +8,7 @@ async function healthCheck() {
   return res.json();
 }
 
-export default function App() {
+export default function BackendTest() {
   const [msg, setMsg] = useState("...");
 
   useEffect(() => {
