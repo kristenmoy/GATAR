@@ -31,6 +31,15 @@ pip install sentence-transformers
 ```shell
 pip install python-dotenv
 ```
+```shell
+pip install pypdf spacy tiktoken openai sentence_transformers qdrant-client
+```
+```shell
+python -m spacy download en_core_web_sm
+```
+```shell
+$env:OPENAI_API_KEY="insert API key here"
+```
 
 ## HOW-TO Run the Application
 ### BACKEND
