@@ -40,11 +40,6 @@ export default function ProfUploads() {
 
   return (
     <>
-      <header className="header-box">
-        <h1>GATAR</h1>
-        <button className="about-button">About Us</button>
-      </header>
-
       <div className="center-screen">
         <div className="upload-box">
           <h2>Upload PDF</h2>
