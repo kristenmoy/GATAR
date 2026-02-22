@@ -41,7 +41,7 @@ export default function ProfUploads() {
   return (
     <>
       <div className="center-screen">
-        <div className="upload-box">
+        <div className="center-wrapper">
           <h2>Upload PDF</h2>
 
           <form onSubmit={handleSubmit}>
