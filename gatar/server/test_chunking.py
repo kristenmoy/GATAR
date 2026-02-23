@@ -29,7 +29,8 @@ from qdrant_client.models import VectorParams, Distance, PointStruct
 nlp = spacy.load("en_core_web_sm")
 enc = tiktoken.get_encoding("cl100k_base")
 client = OpenAI(
-    api_key= os.environ.get("OPENAI_API_KEY")
+    api_key= os.environ.get("OPENAI_API_KEY"),
+    base_url="https://api.ai.it.ufl.edu"
 )
 e5_model = SentenceTransformer("intfloat/e5-large")
 
@@ -115,7 +116,7 @@ def merge_paragraphs_llm(paragraphs, model="gpt-5.1-codex"):
         model=model,
         input=prompt,
         reasoning={"effort": "medium"},
-        text={"verbosity": "high"}
+        # text={"verbosity": "high"}
     )
 
     return json.loads(response.choices[0].message.content)
@@ -228,11 +229,8 @@ def build_llm_context(results):
 
 if __name__ == "__main__":
     # testing API key is valid
-    client = OpenAI()
     print(client.models.list())
-    print(repr(os.environ.get("OPENAI_API_KEY")))
 
-
-    # pdf_file = "Downloads/OSI_model.pdf"
-    # chunks = pdf_to_embedded_chunks(pdf_file)
-    # print(json.dumps(chunks, indent=2))
+    pdf_file = "C:/Users/lduli/Downloads/hw3.pdf"
+    chunks = pdf_to_embedded_chunks(pdf_file)
+    print(json.dumps(chunks, indent=2))
