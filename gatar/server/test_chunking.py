@@ -197,21 +197,6 @@ def embed_with_e5(chunks):
         chunks, normalize_embeddings=True, show_progress_bar=True
     )
 
-# add embeddings to qdrant
-def upload_to_qdrant(embedding_chunks, collection_name):
-    # create a collection (one for each class)
-    # add vectors (from embedding_chunks)
-
-    vectors = embed_with_e5([chunk["text_for_embedding"] for chunk in embedding_chunks])
-
-# RAG retrieval
-def query_qdrant(query, collection_name, top_k=5):
-    # top_k refers to the top vector similarity results for the query
-    # embed the query (must be a vector)
-    # conduct a qdrant search
-    # return results
-    query_embedding = embed_with_e5([f"query: {query}"])[0]
-
 # helper func so the LLM will only use the retrieved similarity vectors correcponding to the query
 def build_llm_context(results):
     # join the context vectors and return
