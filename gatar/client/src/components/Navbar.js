@@ -1,16 +1,21 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 
-function Navbar() {
+export default function Navbar() {
   return (
-    <nav>
-      <Link to="/test" style={{ marginRight: '15px' }}>Backend Test</Link>
-      <Link to="/about" style={{ marginRight: '15px' }}>About</Link>
-      <Link to="/profLogin" style={{ marginRight: '15px' }}>Professor Login</Link>
-      <Link to="/studentLogin" style={{ marginRight: '15px' }}>Student Login</Link>
-      <Link to="/profUpload" style={{ marginRight: '15px' }}>Professor Upload</Link>
-    </nav>
+    <>
+      <header className="header-box">
+        <Link to="/home">
+          <h1>GATAR</h1>
+        </Link>
+        <nav className="nav-links">
+          <Link to="/test">Test</Link> |  
+          <Link to="/profLogin">Prof Login</Link> | 
+          <Link to="/studentLogin">Student Login</Link> | 
+          <Link to="/profUpload">Upload</Link>
+        </nav>
+        <Link to="/about" className="about-button">About Us</Link>
+      </header>
+    </>
   );
 }
-
-export default Navbar;

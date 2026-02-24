@@ -5,9 +5,158 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  background: var(--background);
+  color: var(--foreground);
+  font-family: Arial, Helvetica, sans-serif;
 }
 
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
+}
+
+:root {
+  --background: #150FA9;
+  --foreground: #171717;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
+}
+
+.header-box 
+{
+  background: #F5F9FF;
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+}
+
+.header-box h1
+{
+  margin: 0;
+  margin-left: 20px;
+  font-size: 50px;
+  font-weight: 900;
+  color: #150FA9;
+}
+
+.about-button
+{
+  margin: 0;
+  margin-right: 20px;
+  background: #BD4F00;
+  color: white;
+  border-radius: 8px;
+  padding: 12px 40px;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.about-button:hover
+{
+  background: #A13515;
+}
+
+.center-screen 
+{
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  min-height: 100vh;
+}
+
+.center-wrapper 
+{
+  margin-bottom: 30px;
+  background: white;
+  padding: 40px 60px;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  max-width: 500px;  /* Maximum width on large screens */
+  width: 90%;        /* Takes 90% of screen width on small screens */
+}
+
+.center-wrapper h2 
+{
+  color: #150FA9;
+  margin-top: 0;
+  margin-bottom: 30px;
+  font-size: 28px;
+}
+
+.center-wrapper input[type="file"] 
+{
+  padding: 10px;
+  border: 2px dashed #150FA9;
+  border-radius: 8px;
+  width: 100%;
+  cursor: pointer;
+}
+
+.center-wrapper button
+{
+  background: #BD4F00;
+  color: white;
+  padding: 12px 40px;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 20px;
+  width: 100%;
+}
+
+.center-wrapper button:hover 
+{
+  background: #A13515;
+}
+
+.center-wrapper li
+{
+  text-align: left;
+}
+
+.custom-file-button 
+{
+  display: block;
+  padding: 15px;
+  border: 2px dashed #150FA9;
+  border-radius: 8px;
+  background: white;
+  cursor: pointer;
+  text-align: center;
+  color: #150FA9;
+  font-weight: 500;
+  margin-bottom: 20px;
+  transition: all 0.3s;
+}
+
+.custom-file-button:hover 
+{
+  background: #f0f0f0;
+  border-color: #BD4F00;
+}
+
+.nav-links {
+  background: #f5f5f5;
+  padding: 15px;
+  display: flex;
+  gap: 80px;
+  justify-content: center;
+}
+
+.nav-links a {
+  color: #150FA9;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.nav-links a:hover {
+  text-decoration: underline;
 }
