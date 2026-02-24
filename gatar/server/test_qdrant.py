@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 load_dotenv()
 import os
 from qdrant_client import QdrantClient
-from server.qdrant_service import upload_to_qdrant, query_qdrant
+from server.qdrant_service import upload_to_qdrant, query_qdrant, get_client
 
 load_dotenv()
 
@@ -15,10 +15,10 @@ QDRANT_API_KEY = os.getenv("QDRANT_API_KEY")
 print("URL:", QDRANT_URL)
 print("API KEY exists:", QDRANT_API_KEY is not None)
 
-client = QdrantClient(
-    url=QDRANT_URL,
-    api_key=QDRANT_API_KEY
-)
+client = get_client()
+# print("Before delete:", client.get_collections())
+# client.delete_collection("test")
+# print("After delete:", client.get_collections())
 
 collections = client.get_collections()
 print("Connected successfully.")
@@ -42,7 +42,7 @@ upload_to_qdrant(test_chunks, collection_name)
 
 results = query_qdrant(
     query="Why use a database?",
-    collection_name="docs",
+    collection_name="test",
     top_k=3
 )
 

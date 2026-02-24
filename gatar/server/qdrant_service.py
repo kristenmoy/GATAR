@@ -9,14 +9,20 @@ QDRANT_API_KEY = os.getenv("QDRANT_API_KEY")
 COLLECTION = os.getenv("QDRANT_COLLECTION", "docs")
 EMBED_DIM = int(os.getenv("EMBED_DIM", "384"))
 
-client = QdrantClient(url=QDRANT_URL, api_key=QDRANT_API_KEY)
-
-VECTOR_SIZE = 512
+#client = QdrantClient(url=QDRANT_URL, api_key=QDRANT_API_KEY)
+def get_client():
+    return QdrantClient(
+        url=os.getenv("QDRANT_URL"),
+        api_key=os.getenv("QDRANT_API_KEY"),
+        prefer_grpc=False
+    )
 
 ''' add embeddings to qdrant
 create a collection (one for each class)
 add vectors (from embedding_chunks) '''
 def upload_to_qdrant(embedding_chunks, collection_name):
+
+    client = get_client()
 
     if not embedding_chunks:
         print("No chunks to upload.")
@@ -28,6 +34,8 @@ def upload_to_qdrant(embedding_chunks, collection_name):
 
     if len(vectors) != len(embedding_chunks):
         raise ValueError("Mismatch between embeddings and chunks.")
+    
+    vector_size = len(vectors[0])
 
     # Create Collection
     collections = client.get_collections().collections
@@ -39,7 +47,7 @@ def upload_to_qdrant(embedding_chunks, collection_name):
         client.create_collection(
             collection_name=collection_name,
             vectors_config=VectorParams(
-                size=VECTOR_SIZE,
+                size=vector_size,
                 distance=Distance.COSINE
             )
         )
@@ -72,25 +80,24 @@ def upload_to_qdrant(embedding_chunks, collection_name):
 Embed the query, conduct a qdrant search & return results 
 top_k refers to the top vector similarity results for the query '''
 def query_qdrant(query, collection_name, top_k=5):
+    client = get_client()
+
     # Embed Query
     query_embedding = embed_with_e5([f"query: {query}"])[0]
 
     # Search Qdrant
     results = client.query_points(
         collection_name=collection_name,
-        query_vector=query_embedding,
+        query=query_embedding,
         limit=top_k
     ).points
 
     # Format Results
-    formatted_results = []
-
-    for r in results:
-        formatted_results.append({
+    return [
+        {
+            "id": r.id,
             "score": r.score,
-            "text": r.payload.get("text"),
-            "source": r.payload.get("source"),
-            "page": r.payload.get("page")
-        })
-
-    return formatted_results
+            "payload": r.payload
+        }
+        for r in results
+    ]
