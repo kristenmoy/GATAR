@@ -70,6 +70,17 @@ code {
   min-height: 100vh;
 }
 
+.gator-background
+{
+  overflow: hidden;
+  background-image: url('../public/darkerThanGata.png');
+  background-color:#150FA9;
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: center;
+  height: 100vh;
+}
+
 .center-wrapper 
 {
   margin-bottom: 30px;
@@ -87,6 +98,17 @@ code {
   margin-top: 0;
   margin-bottom: 30px;
   font-size: 28px;
+}
+
+.center-wrapper h3
+{
+  color: #171717;
+  font-size: 24px;
+}
+
+.center-wrapper p
+{
+  color: #171717;
 }
 
 .center-wrapper input[type="file"] 
@@ -159,4 +181,23 @@ code {
 
 .nav-links a:hover {
   text-decoration: underline;
+}
+
+.switch-login-button {
+  background: #BD4F00;
+  color: white;
+  padding: 12px 40px;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  /* may need to revisit this */
+  position: absolute;
+  bottom: 0;
+  right: 0;
+}
+
+.switch-login-button:hover {
+  background: #A13515;
 }
