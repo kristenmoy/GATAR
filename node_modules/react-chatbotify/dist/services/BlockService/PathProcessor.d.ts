@@ -1,0 +1,10 @@
+import { Block } from "../../types/Block";
+import { Params } from "../../types/Params";
+/**
+ * Handles processing of path in current block.
+ *
+ * @param block current block being processed
+ * @param params contains parameters that can be used/passed into attributes
+ */
+export declare const processPath: (block: Block, params: Params) => Promise<boolean>;
+//# sourceMappingURL=PathProcessor.d.ts.map
