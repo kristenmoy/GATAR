@@ -5,20 +5,13 @@ import os
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from qdrant_client.http.models import PointStruct
-from qdrant_service import client, ensure_collection, COLLECTION
-from embeddings import embed_texts, embed_query
+from server.qdrant_service import client
+from server.embeddings import embed_texts, embed_query
 
 
 def create_app():
     app = Flask(__name__)
-    CORS(app)  # fine for dev; tighten later
-
-    # Ensure Qdrant collection exists at startup
-    try:
-        ensure_collection()
-    except Exception as e:
-        # Don't crash silently; show a useful error
-        print("Failed to ensure Qdrant collection:", repr(e))
+    CORS(app)
 
     @app.get("/")
     def home():
@@ -51,7 +44,6 @@ def create_app():
             for d, v in zip(docs, vectors)
         ]
 
-        client.upsert(collection_name=COLLECTION, points=points)
         return jsonify({"ok": True, "count": len(points)})
 
     @app.get("/api/qdrant-test")
@@ -79,8 +71,7 @@ def create_app():
             return jsonify({"error": "Missing query"}), 400
 
         qvec = embed_query(q)
-        hits = client.search(collection_name=COLLECTION, query_vector=qvec, limit=limit)
-
+        
         return jsonify(
             {
                 "results": [
@@ -96,6 +87,5 @@ def create_app():
 app = create_app()
 
 if __name__ == "__main__":
-    # This avoids FLASK_APP detection issues on Windows
     port = int(os.getenv("PORT", "5000"))
     app.run(host="127.0.0.1", port=port, debug=True)

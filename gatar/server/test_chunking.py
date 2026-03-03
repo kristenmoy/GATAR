@@ -87,7 +87,7 @@ def classify_paragraph(text):
     }
 
 # Prompt construction using chunked paragraphs
-def merge_paragraphs_llm(paragraphs, model="gpt-5.1-codex"):
+def merge_paragraphs_llm(paragraphs, model="gpt-5.1"):
 
     prompt = f"""
     You are preparing text chunks for vector embeddings using the E5-large model.
@@ -119,7 +119,13 @@ def merge_paragraphs_llm(paragraphs, model="gpt-5.1-codex"):
         # text={"verbosity": "high"}
     )
 
-    return json.loads(response.choices[0].message.content)
+    raw = response.output_text.strip()
+    try:
+        return json.loads(raw)
+    except json.JSONDecodeError:
+        print("LLM returned invalid JSON:")
+        print(raw)
+        raise
 
 
 
@@ -140,24 +146,27 @@ def split_if_needed(text, max_tokens=350):
 
 # Prepare metadata for chunks
 # Add metadata for course, lecture, chapter, page numbers, etc.
-def format_for_e5(chunk, title=None, page_range=None):
+def format_for_e5(chunk, doc_title=None, section_header=None, page_range=None):
     prefix = "passage: "
     meta = []
 
-    if title:
-        meta.append(f"Section: {title}")
+    if doc_title:
+        meta.append(f"Document: {doc_title}")
+    if section_header:
+        meta.append(f"Section: {section_header}")
     if page_range:
         meta.append(f"Pages: {page_range}")
 
-    header = " | ".join(meta)
-    return f"{prefix}{header}\n{chunk}"
+    metadata_block = " | ".join(meta)
+    return f"{prefix}{metadata_block}\n{chunk}"
 
 
 
 # full pdf -> embedding prepared pipeling
-def pdf_to_embedded_chunks(pdf_path, llm_model = "gpt-5.1-codex", max_tokens = 350):
+def pdf_to_embedded_chunks(pdf_path, llm_model = "gpt-5.1", max_tokens = 350):
     
-    # extract pages, split into paragraphs, generate ids for paragraph metadata
+    # extract pdf title, pages, split into paragraphs, generate ids for paragraph metadata
+    doc_title = os.path.splitext(os.path.basename(pdf_path))[0]
     pages = extract_pages(pdf_path)
     paragraphs = page_to_paragraphs(pages)
     para_ids = [{"id": index, "text": p["text"]} for index, p in enumerate(paragraphs)]
@@ -181,9 +190,10 @@ def pdf_to_embedded_chunks(pdf_path, llm_model = "gpt-5.1-codex", max_tokens = 3
         pg_numbers = [paragraphs[p]["page"] for p in chunk["paragraph_ids"]]
         pg_range = f"{min(pg_numbers)}-{max(pg_numbers)}"
         embedding_chunks.append({
-            "text_for_embedding" : format_for_e5(chunk["chunk_text"], title=chunk["chunk_title"], page_range=pg_range),
+            "text_for_embedding" : format_for_e5(chunk["chunk_text"], doc_title=doc_title, section_header=chunk["chunk_title"], page_range=pg_range),
             "metadata": {
-                "title": chunk["chunk_title"],
+                "title": doc_title,
+                "section_header": chunk["chunk_title"],
                 "pages": pg_range,
                 "paragraph_ids": chunk["paragraph_ids"]
             }
@@ -196,21 +206,6 @@ def embed_with_e5(chunks):
     return e5_model.encode(
         chunks, normalize_embeddings=True, show_progress_bar=True
     )
-
-# add embeddings to qdrant
-def upload_to_qdrant(embedding_chunks, collection_name):
-    # create a collection (one for each class)
-    # add vectors (from embedding_chunks)
-
-    vectors = embed_with_e5([chunk["text_for_embedding"] for chunk in embedding_chunks])
-
-# RAG retrieval
-def query_qdrant(query, collection_name, top_k=5):
-    # top_k refers to the top vector similarity results for the query
-    # embed the query (must be a vector)
-    # conduct a qdrant search
-    # return results
-    query_embedding = embed_with_e5([f"query: {query}"])[0]
 
 # helper func so the LLM will only use the retrieved similarity vectors correcponding to the query
 def build_llm_context(results):
@@ -227,10 +222,11 @@ def build_llm_context(results):
         )
     return "\n\n---\n\n".join(context)
 
-if __name__ == "__main__":
+# if __name__ == "__main__":
     # testing API key is valid
-    print(client.models.list())
+    # print(client.models.list())
 
-    pdf_file = "C:/Users/lduli/Downloads/hw3.pdf"
-    chunks = pdf_to_embedded_chunks(pdf_file)
-    print(json.dumps(chunks, indent=2))
+    # testing the chunking->embedding pipeline
+    # pdf_file = "C:/Users/Sophie Shah/Downloads/OSI_model.pdf"
+    # chunks = pdf_to_embedded_chunks(pdf_file)
+    # print(json.dumps(chunks, indent=2))

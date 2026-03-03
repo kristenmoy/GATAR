@@ -40,15 +40,15 @@ python -m spacy download en_core_web_sm
 ```shell
 $env:OPENAI_API_KEY="insert API key here"
 ```
+```shell
+echo $env:OPENAI_API_KEY
+```
 
 ## HOW-TO Run the Application
 ### BACKEND
 
 ```shell
-cd server
-```
-```shell
-python app.py
+python -m server.app
 ```
 
 ### FRONTEND
