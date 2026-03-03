@@ -2,7 +2,8 @@ import React from 'react';
 
 function About() {
   return (
-    <div className="center-screen">
+    <div className="gator-background">
+      <div className="center-screen">
         <div className="center-wrapper">
           <h2>About GATAR</h2>
           <p>
@@ -36,6 +37,7 @@ function About() {
           </p>
         </div>
       </div>
+    </div>
   );
 }
 
