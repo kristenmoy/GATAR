@@ -43,6 +43,9 @@ $env:OPENAI_API_KEY="insert API key here"
 ```shell
 echo $env:OPENAI_API_KEY
 ```
+```shell
+npm install react-chatbotify
+```
 
 ## HOW-TO Run the Application
 ### BACKEND

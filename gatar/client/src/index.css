@@ -211,3 +211,8 @@ code {
   background-position: center;
   height: 100vh;
 }
+
+.rcb-chat-window {
+  width: 80vw !important;
+  height: 80vh !important;
+}
