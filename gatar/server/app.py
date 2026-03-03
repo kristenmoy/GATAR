@@ -5,13 +5,22 @@ import os
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from qdrant_client.http.models import PointStruct
-from server.qdrant_service import client
-from server.embeddings import embed_texts, embed_query
+from qdrant_service import client, ensure_collection, COLLECTION
+from embeddings import embed_texts, embed_query
+from test_chunking import pdf_to_embedded_chunks
+import uuid
 
 
 def create_app():
     app = Flask(__name__)
-    CORS(app)
+    CORS(app)  # fine for dev; tighten later
+
+    # Ensure Qdrant collection exists at startup
+    try:
+        ensure_collection()
+    except Exception as e:
+        # Don't crash silently; show a useful error
+        print("Failed to ensure Qdrant collection:", repr(e))
 
     @app.get("/")
     def home():
@@ -44,8 +53,62 @@ def create_app():
             for d, v in zip(docs, vectors)
         ]
 
+        client.upsert(collection_name=COLLECTION, points=points)
         return jsonify({"ok": True, "count": len(points)})
 
+    @app.post("/api/upload-pdf")
+    def upload_pdf():
+
+        # check if valid PDF file uploaded
+        if "file" not in request.files:
+            return jsonify({"error": "No file provided"}), 400
+
+        file = request.files["file"]
+
+        if file.filename == "" or not file.filename.lower().endswith(".pdf"):
+            return jsonify({"error": "Invalid PDF file"}), 400
+
+        # Save temporarily to uploads directory
+        upload_dir = "uploads"
+        os.makedirs(upload_dir, exist_ok=True)
+        file_path = os.path.join(upload_dir, file.filename)
+        file.save(file_path)
+
+        try:
+            # LLM chunking pipeline from test_chunking
+            embedding_chunks = pdf_to_embedded_chunks(file_path)
+
+            # Convert to existing ingestion format with unique chunk id
+            docs = []
+            for chunk in embedding_chunks:
+                docs.append({
+                    "id": str(uuid.uuid4()),
+                    "text": chunk["text_for_embedding"],
+                    "meta": chunk["metadata"]
+                })
+
+            vectors = embed_texts([d["text"] for d in docs])
+
+            points = [
+                PointStruct(
+                    id=d["id"],
+                    vector=v,
+                    payload={**(d.get("meta") or {}), "text": d["text"]},
+                )
+                for d, v in zip(docs, vectors)
+            ]
+
+            client.upsert(collection_name=COLLECTION, points=points)
+
+            return jsonify({
+                "ok": True,
+                "chunks_created": len(points)
+            })
+
+        except Exception as e:
+            print("PDF processing failed:", repr(e))
+            return jsonify({"error": "PDF Processing failed"}), 500
+    
     @app.get("/api/qdrant-test")
     def qdrant_test():
         try:
@@ -71,7 +134,8 @@ def create_app():
             return jsonify({"error": "Missing query"}), 400
 
         qvec = embed_query(q)
-        
+        hits = client.search(collection_name=COLLECTION, query_vector=qvec, limit=limit)
+
         return jsonify(
             {
                 "results": [
@@ -87,5 +151,6 @@ def create_app():
 app = create_app()
 
 if __name__ == "__main__":
+    # This avoids FLASK_APP detection issues on Windows
     port = int(os.getenv("PORT", "5000"))
     app.run(host="127.0.0.1", port=port, debug=True)
