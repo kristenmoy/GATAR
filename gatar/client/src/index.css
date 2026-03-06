@@ -54,6 +54,21 @@ code {
   padding: 12px 40px;
   cursor: pointer;
   text-decoration: none;
+  font-size: 16px;
+}
+
+.logout-button
+{
+  margin: 0;
+  margin-right: 10px;
+  margin-left: 10px;
+  background: #150FA9;
+  color: white;
+  border-radius: 8px;
+  padding: 12px 40px;
+  cursor: pointer;
+  border: none;
+  font-size: 16px;
 }
 
 .center-screen 
@@ -184,7 +199,7 @@ code {
   cursor: pointer;
   transition: all 0.3s ease;
   z-index: 1000;
-  width: 200px;            /* fixed width */
+  width: 220px;
 }
 .hover-box .label {
   font-weight: 750;
@@ -194,11 +209,11 @@ code {
   overflow: hidden;
   transition: max-height 0.3s ease;
   margin-top: 8px;
-  padding-bottom: 15px; /* ensure space below button */
+  padding-bottom: 15px;
 }
 .hover-box:hover {
   padding: 16px 20px;
 }
 .hover-box:hover .extra {
-  max-height: 360px; /* taller expansion to accommodate button */
+  max-height: 360px;
 }
