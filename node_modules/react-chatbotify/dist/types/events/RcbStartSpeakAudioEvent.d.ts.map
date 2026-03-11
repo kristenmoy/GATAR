@@ -1,0 +1,1 @@
+{"version":3,"file":"RcbStartSpeakAudioEvent.d.ts","sourceRoot":"","sources":["../../../src/types/events/RcbStartSpeakAudioEvent.ts"],"names":[],"mappings":"AAAA,OAAO,EAAE,YAAY,EAAE,MAAM,iCAAiC,CAAC;AAE/D;;GAEG;AACH,MAAM,MAAM,uBAAuB,GAAG,YAAY,CAAC;IAC/C,UAAU,EAAE,MAAM,CAAC;CACtB,CAAC,CAAC"}

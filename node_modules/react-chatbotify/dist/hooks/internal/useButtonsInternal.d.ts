@@ -1,0 +1,9 @@
+/**
+ * Internal custom hook for creating buttons.
+ */
+export declare const useButtonInternal: () => {
+    headerButtons: JSX.Element[];
+    chatInputButtons: JSX.Element[];
+    footerButtons: JSX.Element[];
+};
+//# sourceMappingURL=useButtonsInternal.d.ts.map
