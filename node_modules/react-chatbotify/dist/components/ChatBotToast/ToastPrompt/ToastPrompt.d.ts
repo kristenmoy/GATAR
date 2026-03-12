@@ -1,0 +1,15 @@
+import "./ToastPrompt.css";
+/**
+ * Provides toast message prompt with information.
+ *
+ * @param id id of the toast
+ * @param content content of the toast
+ * @param timeout timeout in milliseconds (optional) for removing toast
+ */
+declare const Toast: ({ id, content, timeout, }: {
+    id: string;
+    content: string | JSX.Element;
+    timeout?: number;
+}) => import("react/jsx-runtime").JSX.Element;
+export default Toast;
+//# sourceMappingURL=ToastPrompt.d.ts.map

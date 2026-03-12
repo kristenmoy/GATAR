@@ -18,30 +18,23 @@ We believe this tool could improve student understanding while giving instructor
 ## Installations
 ```shell
 python -m pip install --upgrade pip
-```
-```shell
 pip install flask flask-cors
-```
-```shell
 pip install qdrant-client flask-cors
-```
-```shell
 pip install sentence-transformers
-```
-```shell
 pip install python-dotenv
-```
-```shell
 pip install pypdf spacy tiktoken openai sentence_transformers qdrant-client
-```
-```shell
 python -m spacy download en_core_web_sm
 ```
+#### Set API key
 ```shell
 $env:OPENAI_API_KEY="insert API key here"
 ```
+#### Test if API key is correctly set (optional)
 ```shell
 echo $env:OPENAI_API_KEY
+```
+```shell
+npm install react-chatbotify
 ```
 
 ## HOW-TO Run the Application
