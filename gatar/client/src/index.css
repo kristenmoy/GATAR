@@ -55,11 +55,21 @@ code {
   padding: 12px 40px;
   cursor: pointer;
   text-decoration: none;
+  font-size: 16px;
 }
 
-.about-button:hover
+.logout-button
 {
-  background: #A13515;
+  margin: 0;
+  margin-right: 10px;
+  margin-left: 10px;
+  background: #150FA9;
+  color: white;
+  border-radius: 8px;
+  padding: 12px 40px;
+  cursor: pointer;
+  border: none;
+  font-size: 16px;
 }
 
 .center-screen 
@@ -69,6 +79,7 @@ code {
   align-items: center;
   text-align: center;
   min-height: 100vh;
+  background-color: #150FA9;
 }
 
 .gator-background
@@ -91,6 +102,13 @@ code {
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   max-width: 500px;  /* Maximum width on large screens */
   width: 90%;        /* Takes 90% of screen width on small screens */
+}
+
+.center-wrapper h1{
+  color: #150FA9;
+  margin-top: 0;
+  margin-bottom: 20px;
+  font-size: 32px;  
 }
 
 .center-wrapper h2 
@@ -184,6 +202,35 @@ code {
   text-decoration: underline;
 }
 
+.hover-box {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background: white;
+  color: #150fa9;
+  border: 1px solid #150fa9;
+  border-radius: 4px;
+  padding: 5px 5px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  z-index: 1000;
+  width: 220px;
+}
+.hover-box .label {
+  font-weight: 750;
+}
+.hover-box .extra {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease;
+  margin-top: 8px;
+  padding-bottom: 15px;
+}
+.hover-box:hover {
+  padding: 16px 20px;
+}
+.hover-box:hover .extra {
+  max-height: 360px;
 .switch-login-button {
   background: #BD4F00;
   color: white;
