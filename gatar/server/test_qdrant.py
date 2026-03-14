@@ -3,11 +3,10 @@
 
 from dotenv import load_dotenv
 load_dotenv()
+
 import os
 from qdrant_client import QdrantClient
 from server.qdrant_service import upload_to_qdrant, query_qdrant, get_client
-
-load_dotenv()
 
 QDRANT_URL = os.getenv("QDRANT_URL")
 QDRANT_API_KEY = os.getenv("QDRANT_API_KEY")
@@ -16,28 +15,35 @@ print("URL:", QDRANT_URL)
 print("API KEY exists:", QDRANT_API_KEY is not None)
 
 client = get_client()
-# print("Before delete:", client.get_collections())
-# client.delete_collection("test")
-# print("After delete:", client.get_collections())
 
 collections = client.get_collections()
 print("Connected successfully.")
 print("Collections:", collections)
 
+# Updated chunk structure
 test_chunks = [
     {
-        "text": "Databases are helpful.",
-        "source": "sample.pdf",
-        "page": 1
+        "text_for_embedding": "passage: Databases are helpful.",
+        "metadata": {
+            "title": "sample.pdf",
+            "section_header": "Intro",
+            "pages": "1",
+            "paragraph_ids": [1]
+        }
     },
     {
-        "text": "Databases are useful.",
-        "source": "sample.pdf",
-        "page": 2
+        "text_for_embedding": "passage: Databases are useful.",
+        "metadata": {
+            "title": "sample.pdf",
+            "section_header": "Intro",
+            "pages": "2",
+            "paragraph_ids": [2]
+        }
     }
 ]
 
 collection_name = "test"
+
 upload_to_qdrant(test_chunks, collection_name)
 
 results = query_qdrant(

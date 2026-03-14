@@ -29,7 +29,7 @@ def upload_to_qdrant(embedding_chunks, collection_name):
         return
 
     vectors = embed_with_e5(
-        [f"passage: {chunk['text']}" for chunk in embedding_chunks]
+        [chunk["text_for_embedding"] for chunk in embedding_chunks]
     )
 
     if len(vectors) != len(embedding_chunks):
@@ -56,16 +56,23 @@ def upload_to_qdrant(embedding_chunks, collection_name):
     points = []
 
     for chunk, vector in zip(embedding_chunks, vectors):
+
+        metadata = chunk.get("metadata", {})
+
         point = PointStruct(
             id=str(uuid.uuid4()),
             vector=vector,
             payload={
-                "text": chunk["text"],
-                "source": chunk.get("source"),
-                "page": chunk.get("page")
+                "text": chunk["text_for_embedding"],
+                "title": metadata["title"],
+                "section_header": metadata["section_header"],
+                "pages": metadata["pages"],
+                "paragraph_ids": metadata["paragraph_ids"]
             }
         )
+
         points.append(point)
+
 
     # Upload
     client.upsert(
