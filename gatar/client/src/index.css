@@ -8,6 +8,7 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+  overflow: hidden;
 }
 
 code {
@@ -54,11 +55,21 @@ code {
   padding: 12px 40px;
   cursor: pointer;
   text-decoration: none;
+  font-size: 16px;
 }
 
-.about-button:hover
+.logout-button
 {
-  background: #A13515;
+  margin: 0;
+  margin-right: 10px;
+  margin-left: 10px;
+  background: #150FA9;
+  color: white;
+  border-radius: 8px;
+  padding: 12px 40px;
+  cursor: pointer;
+  border: none;
+  font-size: 16px;
 }
 
 .center-screen 
@@ -68,6 +79,18 @@ code {
   align-items: center;
   text-align: center;
   min-height: 100vh;
+  background-color: #150FA9;
+}
+
+.gator-background
+{
+  overflow: hidden;
+  background-image: url('../public/darkerThanGata.png');
+  background-color:#150FA9;
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: center;
+  height: 100vh;
 }
 
 .center-wrapper 
@@ -81,12 +104,30 @@ code {
   width: 90%;        /* Takes 90% of screen width on small screens */
 }
 
+.center-wrapper h1{
+  color: #150FA9;
+  margin-top: 0;
+  margin-bottom: 20px;
+  font-size: 32px;  
+}
+
 .center-wrapper h2 
 {
   color: #150FA9;
   margin-top: 0;
   margin-bottom: 30px;
   font-size: 28px;
+}
+
+.center-wrapper h3
+{
+  color: #171717;
+  font-size: 24px;
+}
+
+.center-wrapper p
+{
+  color: #171717;
 }
 
 .center-wrapper input[type="file"] 
@@ -159,4 +200,109 @@ code {
 
 .nav-links a:hover {
   text-decoration: underline;
+}
+
+.hover-box {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background: white;
+  color: #150fa9;
+  border: 1px solid #150fa9;
+  border-radius: 4px;
+  padding: 5px 5px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  z-index: 1000;
+  width: 220px;
+}
+.hover-box .label {
+  font-weight: 750;
+}
+.hover-box .extra {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease;
+  margin-top: 8px;
+  padding-bottom: 15px;
+}
+.hover-box:hover {
+  padding: 16px 20px;
+}
+.hover-box:hover .extra {
+  max-height: 360px;
+.switch-login-button {
+  background: #BD4F00;
+  color: white;
+  padding: 12px 40px;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  /* may need to revisit this */
+  position: absolute;
+  bottom: 0;
+  right: 0;
+}
+
+.switch-login-button:hover {
+  background: #A13515;
+}
+
+.dashboard-background {
+  overflow: hidden;
+  background-image: url('../public/blueGatas.png');
+  background-color:#150FA9;
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: center;
+  height: 100vh;
+}
+
+.rcb-chat-window {
+  /* chat window size adjustment - chatbotify override*/
+  width: 80vw !important;
+  height: 85vh !important;
+}
+
+.right-side {
+  margin-left: auto;
+  margin-right: 2vw;
+  margin-bottom: 3vw;
+}
+
+.left-side {
+  margin-right: auto;
+  margin-left: 3vw;
+  margin-bottom: 8vh;
+}
+
+.side-wrapper {
+  background: white;
+  padding: 20px 20px;
+  border-radius: 2px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  max-width: 200px;  /* Maximum width on large screens */
+  width: 90%;        /* Takes 90% of screen width on small screens */
+}
+
+.side-wrapper button {
+  background: #BD4F00;
+  color: white;
+  padding: 20px 10px;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 20px;
+  width: 80%;
+}
+
+.side-wrapper h3 {
+  color: #150FA9;
+  margin-top: 0;
+  margin-bottom: 0;
+  font-size: 28px;
 }

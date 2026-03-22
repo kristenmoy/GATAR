@@ -1,0 +1,1 @@
+{"version":3,"file":"RcbStopSimulateStreamMessageEvent.d.ts","sourceRoot":"","sources":["../../../src/types/events/RcbStopSimulateStreamMessageEvent.ts"],"names":[],"mappings":"AAAA,OAAO,EAAE,YAAY,EAAE,MAAM,iCAAiC,CAAC;AAC/D,OAAO,EAAE,OAAO,EAAE,MAAM,YAAY,CAAC;AAErC;;GAEG;AACH,MAAM,MAAM,iCAAiC,GAAG,YAAY,CAAC;IACzD,OAAO,EAAE,OAAO,CAAC;CACpB,CAAC,CAAC"}

@@ -8,6 +8,7 @@ import About from './About';
 import ProfLogin from "./ProfLogin";
 import StudentLogin from "./StudentLogin";
 import ProfUpload from "./ProfUpload";
+import StudentDashboard from "./StudentDashboard";
 
 
 export default function App() {
@@ -16,12 +17,13 @@ export default function App() {
       <Router>
       <Navbar />
       <Routes>
-        <Route path="/home" element={<Home />} />
+        <Route path="/" element={<Home />} />
         <Route path="/test" element={<BackendTest />} />
         <Route path="/about" element={<About />} />
         <Route path="/profLogin" element={<ProfLogin />} />
         <Route path="/studentLogin" element={<StudentLogin />} />
         <Route path="/profUpload" element={<ProfUpload />} />
+        <Route path="/studentDashboard" element={<StudentDashboard />} />
       </Routes>
     </Router>
   );
