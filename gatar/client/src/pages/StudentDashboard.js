@@ -11,6 +11,8 @@ import { useState } from 'react';
    - talk to backend about that
 3. access student courses to reflect that in chatbot options
    - wireframe: showed options already grabbed from student info + add a class opt.
+4. add flask streaming: stream tokens from LLM and render progressively 
+  (update llm response to frontend in real time instead of waiting for full answer to populate)
 */
 
 function StudentDashboard() {
@@ -28,12 +30,31 @@ function StudentDashboard() {
   const flow = {
     start: {
         message: `Welcome to ${course}. How can I help you today?`,
-        path: "end_loop"
+        path: "chat"
     },
-    end_loop: {
-        message: "Connect LLM to this later.",
-        path: "end_loop"
-    }
+    chat: {
+      user: true,
+      handler: async (params) => {
+        const res = await fetch("http://localhost:5000/api/ask", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            question: params.input
+          })
+        });
+
+        const data = await res.json();
+
+        return data.answer || "Something went wrong.";
+      },
+      path: "chat"
+  }
+    // end_loop: {
+    //     message: "Connect LLM to this later.",
+    //     path: "end_loop"
+    // }
   }
   return (
     <div className="dashboard-background">

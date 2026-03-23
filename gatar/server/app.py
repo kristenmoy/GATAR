@@ -7,7 +7,8 @@ from flask_cors import CORS
 from qdrant_client.http.models import PointStruct
 from qdrant_service import client, ensure_collection, COLLECTION
 from embeddings import embed_texts, embed_query
-from test_chunking import pdf_to_embedded_chunks
+from test_chunking import pdf_to_embedded_chunks, embed_with_e5, build_llm_context
+from test_chunking import client as llm_client
 import uuid
 
 
@@ -71,7 +72,8 @@ def create_app():
         # Save temporarily to uploads directory
         upload_dir = "uploads"
         os.makedirs(upload_dir, exist_ok=True)
-        file_path = os.path.join(upload_dir, file.filename)
+        unique_name = f"{uuid.uuid4()}_{file.filename}"
+        file_path = os.path.join(upload_dir, unique_name)
         file.save(file_path)
 
         try:
@@ -79,15 +81,16 @@ def create_app():
             embedding_chunks = pdf_to_embedded_chunks(file_path)
 
             # Convert to existing ingestion format with unique chunk id
-            docs = []
-            for chunk in embedding_chunks:
-                docs.append({
+            docs = [
+                {
                     "id": str(uuid.uuid4()),
                     "text": chunk["text_for_embedding"],
                     "meta": chunk["metadata"]
-                })
+                }
+                for chunk in embedding_chunks
+            ]
 
-            vectors = embed_texts([d["text"] for d in docs])
+            vectors = embed_with_e5([d["text"] for d in docs])
 
             points = [
                 PointStruct(
@@ -108,6 +111,9 @@ def create_app():
         except Exception as e:
             print("PDF processing failed:", repr(e))
             return jsonify({"error": "PDF Processing failed"}), 500
+        finally:
+            if os.path.exists(file_path):
+                os.remove(file_path)
     
     @app.get("/api/qdrant-test")
     def qdrant_test():
@@ -144,6 +150,66 @@ def create_app():
                 ]
             }
         )
+    
+    @app.post("/api/ask")
+    def ask():
+        # future addition: add memory so chatbot remembers conversation
+        data = request.json
+        question = data.get("question")
+
+        if not question:
+            return jsonify({"error": "No question provided"}), 400
+
+        try:
+            # embed question with e5 then search qdrant for top results
+            '''
+            add a query filter by course  later
+            query_filter={
+                "must": [
+                    {"key": "title", "match": {"value": course}}
+                ]
+            }
+            '''
+            query_vector = embed_with_e5([f"query: {question}"])[0]
+
+            results = client.search(
+                collection_name=COLLECTION,
+                query_vector=query_vector,
+                limit=5
+            )
+
+            # make sure LLM uses only the retrieved similarity vectors
+            context = build_llm_context(results)
+
+            # prompt design
+            response = llm_client.responses.create(
+                model="gpt-5.1",
+                input=f"""
+                - Answer the question using ONLY the context below. 
+                - DO NOT use any outside context or sources to answer this question.
+                - DO NOT make up information.
+                - If the answer is not in the context, then say "I don't know based on the provided material."
+                - Be clear and concise.
+                - Cite sources using (Page X-Y).
+
+                Context:
+                {context}
+
+                Question:
+                {question}
+                """
+            )
+
+            answer = response.output_text.strip()
+
+            return jsonify({
+                "answer": answer,
+                "sources": [r.payload for r in results]
+            })
+
+        except Exception as e:
+            print("Query failed:", repr(e))
+            return jsonify({"error": "Query failed"}), 500
 
     return app
 
