@@ -1,7 +1,7 @@
 import uuid
 import os
 from qdrant_client import QdrantClient
-from qdrant_client.models import ( VectorParams, Distance, PointStruct, Filter )
+from qdrant_client.models import ( VectorParams, Distance, PointStruct, Filter, FieldCondition, MatchValue )
 from server import embed_with_e5
 
 QDRANT_URL = os.getenv("QDRANT_URL")
@@ -20,7 +20,7 @@ def get_client():
 ''' add embeddings to qdrant
 create a collection (one for each class)
 add vectors (from embedding_chunks) '''
-def upload_to_qdrant(embedding_chunks, collection_name):
+def upload_to_qdrant(embedding_chunks, collection_name, course_code):
 
     client = get_client()
 
@@ -51,6 +51,15 @@ def upload_to_qdrant(embedding_chunks, collection_name):
                 distance=Distance.COSINE
             )
         )
+        
+        try:
+            client.create_payload_index(
+                collection_name=collection_name,
+                field_name="course_code",
+                field_schema="keyword"
+            )
+        except Exception:
+            pass
 
     # Create Qdrant Points
     points = []
@@ -61,8 +70,10 @@ def upload_to_qdrant(embedding_chunks, collection_name):
             vector=vector,
             payload={
                 "text": chunk["text"],
-                "source": chunk.get("source"),
-                "page": chunk.get("page")
+                "doc_title": chunk.get("doc_title"),
+                "section_header": chunk.get("section_header"),
+                "page": chunk.get("page"),
+                "course_code": course_code
             }
         )
         points.append(point)
@@ -79,7 +90,7 @@ def upload_to_qdrant(embedding_chunks, collection_name):
 ''' RAG retrieval
 Embed the query, conduct a qdrant search & return results 
 top_k refers to the top vector similarity results for the query '''
-def query_qdrant(query, collection_name, top_k=5):
+def query_qdrant(query, collection_name, course_code, top_k=5):
     client = get_client()
 
     # Embed Query
@@ -89,7 +100,15 @@ def query_qdrant(query, collection_name, top_k=5):
     results = client.query_points(
         collection_name=collection_name,
         query=query_embedding,
-        limit=top_k
+        limit=top_k,
+        query_filter=Filter(
+            must=[
+                FieldCondition(
+                    key="course_code",
+                    match=MatchValue(value=course_code)
+                )
+            ]
+        )
     ).points
 
     # Format Results
