@@ -9,6 +9,7 @@ import ProfLogin from "./ProfLogin";
 import StudentLogin from "./StudentLogin";
 import ProfUpload from "./ProfUpload";
 import StudentDashboard from "./StudentDashboard";
+import ProfDashboard from "./ProfDashboard";
 
 
 export default function App() {
@@ -24,6 +25,7 @@ export default function App() {
         <Route path="/studentLogin" element={<StudentLogin />} />
         <Route path="/profUpload" element={<ProfUpload />} />
         <Route path="/studentDashboard" element={<StudentDashboard />} />
+        <Route path="/profDashboard" element={<ProfDashboard />} />
       </Routes>
     </Router>
   );
