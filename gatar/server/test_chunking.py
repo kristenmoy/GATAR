@@ -189,14 +189,18 @@ def pdf_to_embedded_chunks(pdf_path, llm_model = "gpt-5.1", max_tokens = 350):
     for chunk in final_chunks:
         pg_numbers = [paragraphs[p]["page"] for p in chunk["paragraph_ids"]]
         pg_range = f"{min(pg_numbers)}-{max(pg_numbers)}"
+
         embedding_chunks.append({
-            "text_for_embedding" : format_for_e5(chunk["chunk_text"], doc_title=doc_title, section_header=chunk["chunk_title"], page_range=pg_range),
-            "metadata": {
-                "title": doc_title,
-                "section_header": chunk["chunk_title"],
-                "pages": pg_range,
-                "paragraph_ids": chunk["paragraph_ids"]
-            }
+            "text": format_for_e5(
+                chunk["chunk_text"],
+                doc_title=doc_title,
+                section_header=chunk["chunk_title"],
+                page_range=pg_range
+            ),
+
+            "doc_title": doc_title,
+            "section_header": chunk["chunk_title"],
+            "page": pg_range,
         })
 
     return embedding_chunks
@@ -215,7 +219,8 @@ def build_llm_context(results):
         curr = r.payload
         context.append(
             f""" 
-            Title: {curr['title']}
+            Title: {curr['doc_title']}
+            Section Header: {curr['section_header']}
             Pages: {curr['pages']}
             {curr['text']}
             """

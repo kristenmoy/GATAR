@@ -49,7 +49,12 @@ def create_app():
             PointStruct(
                 id=d["id"],
                 vector=v,
-                payload={**(d.get("meta") or {}), "text": d["text"]},
+                payload={
+                    "text": d["text"],
+                    "doc_title": d.get("doc_title"),
+                    "section_header": d.get("section_header"),
+                    "page": d.get("page"),
+                }
             )
             for d, v in zip(docs, vectors)
         ]
@@ -75,31 +80,30 @@ def create_app():
         unique_name = f"{uuid.uuid4()}_{file.filename}"
         file_path = os.path.join(upload_dir, unique_name)
         file.save(file_path)
-
+        print("saving file")
         try:
+            print("starting ingestion pipeline")
             # LLM chunking pipeline from test_chunking
             embedding_chunks = pdf_to_embedded_chunks(file_path)
 
             # Convert to existing ingestion format with unique chunk id
-            docs = [
-                {
-                    "id": str(uuid.uuid4()),
-                    "text": chunk["text_for_embedding"],
-                    "meta": chunk["metadata"]
-                }
-                for chunk in embedding_chunks
-            ]
+            points = []
 
-            vectors = embed_with_e5([d["text"] for d in docs])
+            vectors = embed_with_e5([c["text"] for c in embedding_chunks])
 
-            points = [
-                PointStruct(
-                    id=d["id"],
-                    vector=v,
-                    payload={**(d.get("meta") or {}), "text": d["text"]},
+            for chunk, vector in zip(embedding_chunks, vectors):
+                point = PointStruct(
+                    id=str(uuid.uuid4()),
+                    vector=vector,
+                    payload={
+                        "text": chunk["text"],
+                        "doc_title": chunk.get("doc_title"),
+                        "section_header": chunk.get("section_header"),
+                        "page": chunk.get("page"),
+                        "course_code": chunk.get("course_code")
+                    }
                 )
-                for d, v in zip(docs, vectors)
-            ]
+                points.append(point)
 
             client.upsert(collection_name=COLLECTION, points=points)
 
