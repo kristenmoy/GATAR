@@ -16,7 +16,7 @@ export default function UploadModal({ onClose, classCode }) {
     formData.append("file", file);
 
     try {
-      const res = await fetch("http://localhost:5000/upload", {
+      const res = await fetch("http://localhost:5000/api/upload-pdf", {
         method: "POST",
         body: formData,
       });

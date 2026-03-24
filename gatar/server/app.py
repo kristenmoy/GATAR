@@ -5,13 +5,16 @@ import os
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from qdrant_client.http.models import PointStruct
-from server.qdrant_service import get_client
+from server.qdrant_service import get_client, upload_to_qdrant, query_qdrant
 from server.test_chunking import pdf_to_embedded_chunks, embed_with_e5, build_llm_context
 from server.test_chunking import client as llm_client
 import uuid
 
+COLLECTION = os.getenv("QDRANT_COLLECTION")
 
 def create_app():
+    client = get_client()
+
     app = Flask(__name__)
     CORS(app)  # fine for dev; tighten later
 
@@ -39,7 +42,7 @@ def create_app():
                 return jsonify({"error": f"Document at index {i} must include 'id' and 'text'"}), 400
 
 
-        vectors = embed_texts([d["text"] for d in docs])
+        vectors = embed_with_e5([d["text"] for d in docs])
 
 
         points = [
@@ -63,7 +66,6 @@ def create_app():
 
     @app.post("/api/upload-pdf")
     def upload_pdf():
-
 
         # check if valid PDF file uploaded
         if "file" not in request.files:
@@ -94,18 +96,19 @@ def create_app():
             points = []
 
 
-            vectors = embed_with_e5([c["text"] for c in embedding_chunks])
-
+            vectors = embed_with_e5([c["text_for_embedding"] for c in embedding_chunks])
 
             for chunk, vector in zip(embedding_chunks, vectors):
+                metadata = chunk["metadata"]
+
                 point = PointStruct(
                     id=str(uuid.uuid4()),
                     vector=vector,
                     payload={
-                        "text": chunk["text"],
-                        "doc_title": chunk.get("doc_title"),
-                        "section_header": chunk.get("section_header"),
-                        "page": chunk.get("page"),
+                        "text": chunk["text_for_embedding"],
+                        "doc_title": metadata.get("title"),
+                        "section_header": metadata.get("section_header"),
+                        "page": metadata.get("pages"),
                         "course_code": chunk.get("course_code")
                     }
                 )
