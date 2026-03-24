@@ -26,25 +26,47 @@ print("Collections:", collections)
 
 test_chunks = [
     {
-        "text": "Databases are helpful.",
-        "source": "sample.pdf",
+        "text": "Databases store and organize data efficiently.",
+        "doc_title": "Intro to Databases",
+        "section_header": "What is a Database?",
         "page": 1
     },
     {
-        "text": "Databases are useful.",
-        "source": "sample.pdf",
-        "page": 2
+        "text": "Indexes improve query performance by reducing search time.",
+        "doc_title": "Intro to Databases",
+        "section_header": "Indexing",
+        "page": 5
+    },
+    {
+        "text": "Normalization reduces redundancy and improves data integrity.",
+        "doc_title": "Database Design",
+        "section_header": "Normalization",
+        "page": 10
+    },
+    {
+        "text": "Client-server architecture allows systems to communicate over a network.",
+        "doc_title": "Computer Networks",
+        "section_header": "Architecture Models",
+        "page": 3
+    },
+    {
+        "text": "Protocols define rules for communication between systems, such as HTTP and TCP.",
+        "doc_title": "Computer Networks",
+        "section_header": "Network Protocols",
+        "page": 7
     }
 ]
 
 collection_name = "test"
-upload_to_qdrant(test_chunks, collection_name)
+upload_to_qdrant(test_chunks, collection_name, course_code="CIS4301")
 
 results = query_qdrant(
-    query="Why use a database?",
+    query="How do systems talk to each other?",
     collection_name="test",
-    top_k=3
+    course_code="CIS4301"
 )
 
 for r in results:
     print(r)
+
+client.close()

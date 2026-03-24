@@ -5,7 +5,8 @@ import os
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from qdrant_client.http.models import PointStruct
-from server.qdrant_service import client
+from server.qdrant_service import get_client
+client = get_client()
 from server.embeddings import embed_texts, embed_query
 
 
@@ -35,11 +36,16 @@ def create_app():
 
         vectors = embed_texts([d["text"] for d in docs])
 
+        course_code = data.get("courseCode")
+
+        if not course_code:
+            return jsonify({"error": "Missing course code"}), 400
+
         points = [
             PointStruct(
                 id=d["id"],
                 vector=v,
-                payload={**(d.get("meta") or {}), "text": d["text"]},
+                payload={**(d.get("meta") or {}), "text": d["text"], "course_code": course_code},
             )
             for d, v in zip(docs, vectors)
         ]
@@ -64,23 +70,44 @@ def create_app():
     @app.post("/api/search")
     def search():
         data = request.get_json(force=True) or {}
+
         q = data.get("query", "")
+        course_code = data.get("courseCode")
         limit = int(data.get("limit", 5))
 
         if not q:
             return jsonify({"error": "Missing query"}), 400
 
+        if not course_code:
+            return jsonify({"error": "Missing courseCode"}), 400
+
         qvec = embed_query(q)
-        
-        return jsonify(
-            {
-                "results": [
-                    {"id": h.id, "score": h.score, "payload": h.payload}
-                    for h in hits
+
+        results = client.query_points(
+            collection_name="docs",  # or your collection name
+            query=qvec,
+            limit=limit,
+            query_filter={
+                "must": [
+                    {
+                        "key": "course_code",
+                        "match": {"value": course_code}
+                    }
                 ]
             }
-        )
+        ).points
 
+        return jsonify({
+            "results": [
+                {
+                    "id": r.id,
+                    "score": r.score,
+                    "payload": r.payload
+                }
+                for r in results
+            ]
+        })
+    
     return app
 
 

@@ -25,6 +25,11 @@ pip install python-dotenv
 pip install pypdf spacy tiktoken openai sentence_transformers qdrant-client
 python -m spacy download en_core_web_sm
 ```
+```shell
+npm install react-chatbotify
+npm install react-router-dom
+npm install @clerk/clerk-react
+```
 #### Set API key
 ```shell
 $env:OPENAI_API_KEY="insert API key here"
@@ -32,9 +37,6 @@ $env:OPENAI_API_KEY="insert API key here"
 #### Test if API key is correctly set (optional)
 ```shell
 echo $env:OPENAI_API_KEY
-```
-```shell
-npm install react-chatbotify
 ```
 
 ## HOW-TO Run the Application
