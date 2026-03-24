@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+// import { Link } from 'react-router-dom';
 import ChatBot, { ChatBotProvider } from "react-chatbotify";
 import { useState } from 'react';
 
@@ -28,12 +28,29 @@ function StudentDashboard() {
   const flow = {
     start: {
         message: `Welcome to ${course}. How can I help you today?`,
-        path: "end_loop"
+        path: "ask"
     },
-    end_loop: {
-        message: "Connect LLM to this later.",
-        path: "end_loop"
+    ask: {
+      message: async (params) => {
+        const userMessage = params.userInput;
+
+        const res = await fetch("http://127.0.0.1:5000/api/chat", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ message: userMessage })
+        });
+
+        const data = await res.json();
+        return data.answer || "Sorry, something went wrong.";
+      },
+      path: "ask"
     }
+    // end_loop: {
+    //     message: "Connect LLM to this later.",
+    //     path: "end_loop"
+    // }
   }
   return (
     <div className="dashboard-background">
