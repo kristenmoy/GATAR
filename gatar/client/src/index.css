@@ -231,6 +231,8 @@ code {
 }
 .hover-box:hover .extra {
   max-height: 360px;
+}
+
 .switch-login-button {
   background: #BD4F00;
   color: white;

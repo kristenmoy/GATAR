@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 
-export default function ProfUploads() {
+export default function UploadModal({ onClose, classCode }) {
   const [file, setFile] = useState(null);
 
   function handleFileChange(e) {
@@ -9,13 +9,8 @@ export default function ProfUploads() {
     }
   }
 
-  async function handleSubmit(e) {
-    e.preventDefault();
-
-    if (!file) {
-      alert("Please select a PDF file");
-      return;
-    }
+  async function handleSubmit() {
+    if (!file) { alert("Please select a PDF file"); return; }
 
     const formData = new FormData();
     formData.append("file", file);
@@ -25,10 +20,10 @@ export default function ProfUploads() {
         method: "POST",
         body: formData,
       });
-
       if (res.ok) {
         alert("Upload successful!");
         setFile(null);
+        onClose();
       } else {
         alert("Upload failed");
       }
@@ -39,28 +34,26 @@ export default function ProfUploads() {
   }
 
   return (
-    <>
-      <div className="center-screen">
-        <div className="center-wrapper">
-          <h2>Upload PDF</h2>
+    <div className="modal-backdrop" onClick={onClose}>
+      <div className="modal-card" onClick={function(e) { e.stopPropagation(); }}>
+        <h3>Upload PDF {classCode ? `— ${classCode}` : ''}</h3>
 
-          <form onSubmit={handleSubmit}>
-            <input
-              type="file"
-              id="file-input"
-              accept="application/pdf"
-              onChange={handleFileChange}
-              style={{ display: "none" }}
-            />
+        <input
+          type="file"
+          id="file-input"
+          accept="application/pdf"
+          onChange={handleFileChange}
+          style={{ display: "none" }}
+        />
+        <label htmlFor="file-input" className="custom-file-button">
+          {file ? file.name : "Choose PDF File"}
+        </label>
 
-            <label htmlFor="file-input" className="custom-file-button">
-              {file ? file.name : "Choose PDF File"}
-            </label>
-
-            <button type="submit">Upload</button>
-          </form>
+        <div className="modal-actions">
+          <button className="modal-cancel" onClick={onClose}>Cancel</button>
+          <button className="modal-confirm" onClick={handleSubmit}>Upload</button>
         </div>
       </div>
-    </>
+    </div>
   );
 }

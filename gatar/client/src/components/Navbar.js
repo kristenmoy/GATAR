@@ -14,6 +14,7 @@ export default function Navbar() {
           <Link to="/profLogin">Prof Login</Link>
           <Link to="/studentLogin">Student Login</Link>
           <Link to="/profUpload">Upload</Link>
+          <Link to="/profDashboard">Prof Dashboard</Link>
         </nav>
         <SignOutButton>
           <button className="logout-button">Logout</button>
