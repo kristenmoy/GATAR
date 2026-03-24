@@ -158,7 +158,7 @@ def create_app():
             return jsonify({"error": "Missing query"}), 400
 
 
-        qvec = embed_query(q)
+        qvec = embed_with_e5(q)
         hits = client.search(collection_name=COLLECTION, query_vector=qvec, limit=limit)
 
 
