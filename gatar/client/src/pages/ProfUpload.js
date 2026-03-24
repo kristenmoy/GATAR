@@ -23,7 +23,7 @@ export default function UploadModal({ onClose, classCode }) {
       if (res.ok) {
         alert("Upload successful!");
         setFile(null);
-        onClose();
+        if (onClose) onClose();
       } else {
         alert("Upload failed");
       }
