@@ -16,7 +16,7 @@ def create_app():
     client = get_client()
 
     app = Flask(__name__)
-    CORS(app)  # fine for dev; tighten later
+    CORS(app, resources={r"/api/*": {"origins": "*"}})  # fine for dev; tighten later
 
     @app.get("/")
     def home():
@@ -158,7 +158,7 @@ def create_app():
             return jsonify({"error": "Missing query"}), 400
 
 
-        qvec = embed_with_e5(q)
+        qvec = embed_with_e5([q])[0]
         hits = client.search(collection_name=COLLECTION, query_vector=qvec, limit=limit)
 
 
@@ -171,76 +171,64 @@ def create_app():
             }
         )
    
-    @app.post("/api/ask")
-    def ask():
-        # future addition: add memory so chatbot remembers conversation
-        data = request.json
-        question = data.get("question")
+    @app.post("/api/chat")
+    def chat():
+        print("made it to chat")
+        data = request.get_json(force=True) or {}
+        q = data.get("message", "")
+        print("question is: ", q)
+        if not q:
+            return jsonify({"error": "Missing message"}), 400
 
+        # 1. Embed query
+        qvec = embed_with_e5([q])[0]
+        print("query embedded")
 
-        if not question:
-            return jsonify({"error": "No question provided"}), 400
+        # 2. Qdrant search
+        results = client.query_points(
+            collection_name="test",
+            query=qvec,
+            limit=5
+        )
+        hits = results.points
+        for i in hits:
+            print(type(i))
+            print(i.payload)
+        print("qdrant search completed")
 
+        # 3. Build context
+        context = build_llm_context(hits)
+        print("finished building context")
 
-        try:
-            # embed question with e5 then search qdrant for top results
-            '''
-            add a query filter by course  later
-            query_filter={
-                "must": [
-                    {"key": "title", "match": {"value": course}}
-                ]
-            }
-            '''
-            query_vector = embed_with_e5([f"query: {question}"])[0]
+        # 4. Prompt design
+        prompt = f"""
+        You are a helpful tutor.
 
+        - Use ONLY the context below to answer the question.
+        - DO NOT use any outside context or sources other than what is provided.
+        - If you do not have enough context to answer, say "I do not have enough context to answer this question"
 
-            results = client.search(
-                collection_name=COLLECTION,
-                query_vector=query_vector,
-                limit=5
-            )
+        Context:
+        {context}
 
+        Question:
+        {q}
 
-            # make sure LLM uses only the retrieved similarity vectors
-            context = build_llm_context(results)
+        Answer clearly and concisely.
+        """
 
+        response = llm_client.responses.create(
+            model="gpt-5.1",
+            input=prompt
+        )
 
-            # prompt design
-            response = llm_client.responses.create(
-                model="gpt-5.1",
-                input=f"""
-                - Answer the question using ONLY the context below.
-                - DO NOT use any outside context or sources to answer this question.
-                - DO NOT make up information.
-                - If the answer is not in the context, then say "I don't know based on the provided material."
-                - Be clear and concise.
-                - Cite sources using (Page X-Y).
+        answer = response.output_text
+        print("llm outputted answer")
 
-
-                Context:
-                {context}
-
-
-                Question:
-                {question}
-                """
-            )
-
-
-            answer = response.output_text.strip()
-
-
-            return jsonify({
-                "answer": answer,
-                "sources": [r.payload for r in results]
-            })
-
-
-        except Exception as e:
-            print("Query failed:", repr(e))
-            return jsonify({"error": "Query failed"}), 500
-
+        return jsonify({
+            "answer": answer,
+            "sources": [h.payload for h in hits]
+        })
 
     return app
 

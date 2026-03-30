@@ -215,9 +215,10 @@ def build_llm_context(results):
         curr = r.payload
         context.append(
             f""" 
-            Title: {curr['title']}
-            Pages: {curr['pages']}
-            {curr['text']}
+            Title: {curr.get("doc_title")}
+            Pages: {curr.get("page")}
+            Section: {curr.get("section_header")}
+            {curr.get("text")}
             """
         )
     return "\n\n---\n\n".join(context)
