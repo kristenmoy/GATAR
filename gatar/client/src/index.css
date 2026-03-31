@@ -261,12 +261,6 @@ code {
   height: 100vh;
 }
 
-.rcb-chat-window {
-  /* chat window size adjustment - chatbotify override*/
-  width: 80vw !important;
-  height: 85vh !important;
-}
-
 .right-side {
   margin-left: auto;
   margin-right: 2vw;
