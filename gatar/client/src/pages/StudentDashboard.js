@@ -1,7 +1,8 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import ChatBot, { ChatBotProvider } from "react-chatbotify";
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useAuth, useUser } from '@clerk/clerk-react';
 
 /* Current issues:
 1. figure out way to make the course change palpable
@@ -14,8 +15,34 @@ import { useState } from 'react';
 */
 
 function StudentDashboard() {
+  const { isSignedIn, isLoaded } = useAuth();
+  const navigate = useNavigate();
+  const { user } = useUser();
+  const role = user?.unsafeMetadata?.role;
+
   // vars
   const [course, changeCourse] = useState("CIS4904"); // change to student default
+
+  useEffect(() => {
+    if (isLoaded && !isSignedIn) {
+      navigate('/');
+    }
+  }, [isSignedIn, isLoaded, navigate]);
+
+  if (role && role !== 'student') {
+    navigate('/profLogin');
+  }
+
+  if (!isLoaded || !isSignedIn) {
+    return(
+      <div className="dashboard-background">
+        <div className="center-screen">
+          <h1>Oh no! You broke something! Please go back to the login page.</h1>
+        </div>
+      </div>
+    );
+  }
+  
   // functions
   const handleClick = (code) => {
     changeCourse(code);

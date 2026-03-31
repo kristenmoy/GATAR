@@ -18,11 +18,11 @@ export default function App() {
       <Router>
       <Navbar />
       <Routes>
-        <Route path="/" element={<Home />} />
+        {/* <Route path="/" element={<Home />} /> */}
         <Route path="/test" element={<BackendTest />} />
         <Route path="/about" element={<About />} />
         <Route path="/profLogin" element={<ProfLogin />} />
-        <Route path="/studentLogin" element={<StudentLogin />} />
+        <Route path="/" element={<StudentLogin />} />
         <Route path="/profUpload" element={<ProfUpload />} />
         <Route path="/studentDashboard" element={<StudentDashboard />} />
         <Route path="/profDashboard" element={<ProfDashboard />} />

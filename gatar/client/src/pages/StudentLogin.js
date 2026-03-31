@@ -1,16 +1,26 @@
 import React, { useEffect } from 'react';
-import { SignedIn, SignedOut, SignInButton, useAuth } from '@clerk/clerk-react';
+import { SignedIn, SignedOut, useClerk, useAuth } from '@clerk/clerk-react';
 import { Link, useNavigate } from 'react-router-dom';
 
 function StudentLogin() {
   const navigate = useNavigate();
   const { isSignedIn, isLoaded } = useAuth();
+  const { openSignUp, openSignIn } = useClerk();
 
   useEffect(() => {
     if (isLoaded && isSignedIn) {
-      console.log('redirecting to student dashboard');
+      navigate('/studentDashboard');
     }
   }, [isSignedIn, isLoaded, navigate]);
+
+  const handleSignUp = () => {
+    openSignUp({ unsafeMetadata: { role: 'student' } });
+  };
+
+  const handleSignIn = () => {
+    openSignIn();
+  };
+  
   return (
     <div className="center-screen">
       <div className="center-wrapper">
@@ -20,11 +30,15 @@ function StudentLogin() {
           <p>Upcoming exam <b>ruining</b> your weekend? Too many files to click through? Don’t worry...</p>
           <h2><b>GATAR</b> is here to help!</h2>
           <p><b>Log in now</b> to access an AI-powered tutor trained on <b>YOUR</b> course materials. And the best part: it’s completely <b>free</b>!</p>
-          <SignInButton mode="modal" />
+          <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
+            <button onClick={handleSignUp} className="clerk-button">Sign Up</button>
+            <button onClick={handleSignIn} className="clerk-button">Sign In</button>
+          </div>
         </SignedOut>
 
         <SignedIn>
-          {typeof window !== 'undefined' && navigate('/profUpload')}
+          console.log('signed in alr student');
+          {typeof window !== 'undefined' && navigate('/studentDashboard')}
         </SignedIn>
       </div>
 
