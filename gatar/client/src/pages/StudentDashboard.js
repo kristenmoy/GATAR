@@ -4,14 +4,6 @@ import ChatBot, { ChatBotProvider, useSettings, useFlow } from "react-chatbotify
 import { useAuth, useUser } from '@clerk/clerk-react';
 import './StudentDashboard.css';
 
-/* Current issues:
-1. figure out way to make the course change palpable
-   - restart chatbot UI, updateSettings to correct chatbot?
-   - switch chatbot/page entirely?
-2. access student courses to reflect that in chatbot options
-   - wireframe: showed options already grabbed from student info + add a class opt.
-*/
-
 /* for RT token streaming: 2 options - discuss w/ backend once API is back up
   1.  directly messing with chunking: https://react-chatbotify.com/docs/v2/examples/real_time_stream
   2.  simulating stream from pre-written text: in const settings, do botBubble: {simulateStream:true, streamSpeed:20}
