@@ -31,8 +31,8 @@ export default function ProfDashboard() {
   const [newCode, setNewCode] = useState('');
   const [showUploadModal, setShowUploadModal] = useState(false);
   const { user } = useUser();
-  const role = user.unsafeMetadata.role;
-  
+  const role = user?.unsafeMetadata?.role;
+
   useEffect(() => {
     if (isLoaded && !isSignedIn) {
       navigate('/profLogin');
