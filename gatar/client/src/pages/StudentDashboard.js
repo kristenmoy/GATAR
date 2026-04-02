@@ -1,3 +1,12 @@
+import React, { useState, useEffect} from 'react';
+import { useNavigate } from 'react-router-dom';
+import ChatBot, { ChatBotProvider, useSettings, useFlow } from "react-chatbotify";
+import { useAuth, useUser } from '@clerk/clerk-react';
+import './StudentDashboard.css';
+
+/* for RT token streaming: 2 options - discuss w/ backend once API is back up
+  1.  directly messing with chunking: https://react-chatbotify.com/docs/v2/examples/real_time_stream
+  2.  simulating stream from pre-written text: in const settings, do botBubble: {simulateStream:true, streamSpeed:20}
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 // import { Link } from 'react-router-dom';
@@ -15,13 +24,39 @@ import { useAuth, useUser } from '@clerk/clerk-react';
    - wireframe: showed options already grabbed from student info + add a class opt.
 */
 
+const INITIAL_CLASSES = [
+  { id: 1, code: 'CIS4914' },
+  { id: 2, code: 'CNT4106C' },
+  { id: 3, code: 'COP5556' },
+  { id: 4, code: 'MAC2312' },
+  { id: 5, code: 'CEN3031' },
+];
+
+function PersonIcon() {
+  return (
+    <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" className="person-icon">
+      <circle cx="32" cy="22" r="12" fill="#c0c0c0" />
+      <ellipse cx="32" cy="52" rx="20" ry="12" fill="#c0c0c0" />
+    </svg>
+  );
+}
+
 function StudentDashboard() {
   const { isSignedIn, isLoaded } = useAuth();
   const navigate = useNavigate();
+  const {restartFlow, hasFlowStarted} = useFlow();
+  const [chatKey, setChatKey] = useState(0);
+  const {settings, updateSettings} = useSettings();
+  const [classes, setClasses] = useState(INITIAL_CLASSES);
+  const [selectedClass, setSelectedClass] = useState("");
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [newCode, setNewCode] = useState('');
+  const [showUploadModal, setShowUploadModal] = useState(false);
   const { user } = useUser();
   const role = user?.unsafeMetadata?.role;
 
   // vars
+ //const [course, changeCourse] = useState(""); // change to student default
   const [course, changeCourse] = useState("CIS4904"); // change to student default
 
   useEffect(() => {
@@ -48,15 +83,29 @@ function StudentDashboard() {
   const handleClick = (code) => {
     changeCourse(code);
   }
-  // chatbot elements
-  const settings = {
-    general: {embedded:true, primaryColor:"#BD4F00", secondaryColor:"#150FA9"},
-    header: {title:`${course}`}
+
+  // functions
+  function handleAddClass() {
+    setClasses(prev => [...prev, { id: classes.length + 1, code: newCode.trim().toUpperCase() }]);
+    setNewCode('');
+    setShowAddModal(false);
   }
+  // function handleAction(action) {
+  //   if (action === 'Upload')
+  //     {
+  //         setShowUploadModal(true);
+  //     }
+  // }
+
+  // chatbot elements BD4F00
+  const defaultSettings = {
+    general: {embedded:true, primaryColor:"#BD4F00", secondaryColor:"#BD4F00"},
+    header: {title:`${selectedClass.code}`}
+  };
   const flow = {
     start: {
-        message: `Welcome to ${course}. How can I help you today?`,
-        path: "ask"
+        message: `Welcome to ${selectedClass.code}. How can I help you today?`,
+        path: "end_loop"
     },
     ask: {
       message: async (params) => {
@@ -80,25 +129,83 @@ function StudentDashboard() {
     //     path: "end_loop"
     // }
   }
+
   return (
-    <div className="dashboard-background">
-      <div className="center-screen">
-        <div className="left-side">
-          <div className="side-wrapper">
-            <h3>Class list:</h3>
-            <button type="button"
-            onClick={() => handleClick("mewo")}>mewo</button>
-            <button>test</button>
-            <button>class1</button>
-            <button>class2</button>
+    <div className="prof-dashboard-root dashboard-background">
+
+      {!selectedClass ? (
+        <div className="class-picker-overlay">
+          <div className="class-picker-card"> 
+              <h2>Welcome to <span className="brand">GATAR</span>!</h2>
+              <p className="picker-sub">Which class would you like to study for?</p>
+          
+              <div className="class-grid">
+                {classes.map(cls => (
+                    <button key={cls.id} className="class-tile" onClick={() => setSelectedClass(cls)}>
+                      <PersonIcon />
+                      <span className="tile-code">{cls.code}</span>
+                    </button>
+                  ))}
+              </div>
+              <button className="add-class-btn" onClick={() => setShowAddModal(true)}>Add class</button>
           </div>
         </div>
-        <div className="right-side">
+      ) : (
+        <div className="dashboard-container">
+
+          <div className="class-sidebar">
+            {classes.map(cls => (
+              <button
+                key={cls.id}
+                className={`sidebar-class-btn ${selectedClass.id === cls.id ? 'active' : ''}`}
+                onClick={() => {
+                  setSelectedClass(cls);
+                  setChatKey(prevKey => prevKey-1);
+                }}
+                title={cls.code}
+              >
+                <PersonIcon />
+                <span className="sidebar-code">{cls.code}</span>
+              </button>
+            ))}
+          </div>
+
           <ChatBotProvider>
-            <ChatBot settings={settings} flow={flow}/>
+            <ChatBot settings={defaultSettings} flow={flow} key={chatKey}/>
           </ChatBotProvider>
+{/* 
+          <div className="class-actions-panel">
+            <div className="actions-header">
+              <PersonIcon />
+              <span className="actions-course-code">{selectedClass.code}</span>
+            </div>
+            <div className="actions-grid">
+              <button className="action-btn" onClick={() => handleAction('Upload')}>Upload</button>
+              <button className="action-btn" onClick={() => handleAction('Edit')}>Edit</button>
+              <button className="action-btn" onClick={() => handleAction('Manage Class')}>Manage<br />Class</button>
+              <button className="action-btn" onClick={() => handleAction('Publish')}>Publish</button>
+            </div>
+          </div> */}
+
         </div>
-      </div>
+        // <div className="center-screen">
+        //   <div className="left-side">
+        //     <div className="side-wrapper">
+        //       <h3>Class list:</h3>
+        //       <button type="button"
+        //       onClick={() => handleClick("mewo")}>mewo</button>
+        //       <button>test</button>
+        //       <button>class1</button>
+        //       <button>class2</button>
+        //     </div>
+        //   </div>
+        //   <div className="right-side">
+        //     <ChatBotProvider>
+        //       <ChatBot settings={settings} flow={flow}/>
+        //     </ChatBotProvider>
+        //   </div>
+        // </div>
+      )} 
     </div>
   );
 }

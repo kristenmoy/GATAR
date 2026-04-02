@@ -79,7 +79,6 @@ code {
   align-items: center;
   text-align: center;
   min-height: 100vh;
-  background-color: #150FA9;
 }
 
 .gator-background
@@ -260,12 +259,6 @@ code {
   background-size: cover;
   background-position: center;
   height: 100vh;
-}
-
-.rcb-chat-window {
-  /* chat window size adjustment - chatbotify override*/
-  width: 80vw !important;
-  height: 85vh !important;
 }
 
 .right-side {
