@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect} from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth, useUser } from '@clerk/clerk-react';
 import './ProfDashboard.css';
 import UploadModal from "./ProfUpload";
 
@@ -22,12 +23,35 @@ function PersonIcon() {
 }
 
 export default function ProfDashboard() {
+  const { isSignedIn, isLoaded } = useAuth();
   const navigate = useNavigate();
   const [classes, setClasses] = useState(INITIAL_CLASSES);
   const [selectedClass, setSelectedClass] = useState(null);
   const [showAddModal, setShowAddModal] = useState(false);
   const [newCode, setNewCode] = useState('');
   const [showUploadModal, setShowUploadModal] = useState(false);
+  const { user } = useUser();
+  const role = user?.unsafeMetadata?.role;
+
+  useEffect(() => {
+    if (isLoaded && !isSignedIn) {
+      navigate('/profLogin');
+    }
+  }, [isSignedIn, isLoaded, navigate]);
+
+  if (role && role !== 'professor') {
+    navigate('/');
+  }
+
+  if (!isLoaded || !isSignedIn) {
+    return(
+      <div className="dashboard-background">
+        <div className="center-screen">
+          <h1>Oh no! You broke something! Please go back to the login page.</h1>
+        </div>
+      </div>
+    );
+  }
 
   function handleAddClass() {
     setClasses(prev => [...prev, { id: classes.length + 1, code: newCode.trim().toUpperCase() }]);

@@ -6,16 +6,14 @@ export default function Navbar() {
   return (
     <>
       <header className="header-box">
-        <Link to="/">
           <h1>GATAR</h1>
-        </Link>
-        <nav className="nav-links">
+        {/* <nav className="nav-links">
           <Link to="/test">Test</Link>  
           <Link to="/profLogin">Prof Login</Link>
           <Link to="/studentLogin">Student Login</Link>
           <Link to="/profUpload">Upload</Link>
           <Link to="/profDashboard">Prof Dashboard</Link>
-        </nav>
+        </nav> */}
         <SignOutButton>
           <button className="logout-button">Logout</button>
         </SignOutButton>
