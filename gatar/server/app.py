@@ -9,6 +9,7 @@ from server.qdrant_service import get_client, upload_to_qdrant, query_qdrant
 from server.test_chunking import pdf_to_embedded_chunks, embed_with_e5, build_llm_context
 from server.test_chunking import client as llm_client
 import uuid
+from qdrant_client.models import VectorParams, Distance
 
 COLLECTION = os.getenv("QDRANT_COLLECTION")
 
@@ -66,7 +67,10 @@ def create_app():
 
     @app.post("/api/upload-pdf")
     def upload_pdf():
-
+        # client.recreate_collection(
+        #     collection_name=COLLECTION,
+        #     vectors_config=VectorParams(size=1024, distance=Distance.COSINE)
+        # )
         # check if valid PDF file uploaded
         if "file" not in request.files:
             return jsonify({"error": "No file provided"}), 400
@@ -87,17 +91,19 @@ def create_app():
         file.save(file_path)
         print("saving file")
         try:
+            info = client.get_collection(COLLECTION)
+            print(info)
             print("starting ingestion pipeline")
             # LLM chunking pipeline from test_chunking
             embedding_chunks = pdf_to_embedded_chunks(file_path)
-
+            print("finished chunks for embedding in app.py")
 
             # Convert to existing ingestion format with unique chunk id
             points = []
 
 
             vectors = embed_with_e5([c["text_for_embedding"] for c in embedding_chunks])
-
+            
             for chunk, vector in zip(embedding_chunks, vectors):
                 metadata = chunk["metadata"]
 
@@ -113,10 +119,13 @@ def create_app():
                     }
                 )
                 points.append(point)
+            print("embedded chunks with e5")
 
-
+            print("Vector length:", len(vectors[0]))
+            info = client.get_collection(COLLECTION)
+            print(info)
             client.upsert(collection_name=COLLECTION, points=points)
-
+            print("saved chunks to Qdrant")
 
             return jsonify({
                 "ok": True,
@@ -205,7 +214,6 @@ def create_app():
         You are a helpful tutor.
 
         - Use ONLY the context below to answer the question.
-        - DO NOT use any outside context or sources other than what is provided.
         - If you do not have enough context to answer, say "I do not have enough context to answer this question"
 
         Context:
@@ -218,13 +226,21 @@ def create_app():
         """
 
         response = llm_client.responses.create(
-            model="gpt-5.1",
-            input=prompt
+            model="gpt-oss-120b",
+            input=prompt,
+            temperature=0.2
         )
 
-        answer = response.output_text
-        print("llm outputted answer")
+        answer = None
+        for item in response.output:
+            if item.type=="message":
+                for content in item.content:
+                    if content.type=="output_text":
+                        answer = content.text
+        if answer is None:
+            raise ValueError("No answer text output from model")
 
+        print("llm outputted answer")
         return jsonify({
             "answer": answer,
             "sources": [h.payload for h in hits]
@@ -241,6 +257,6 @@ app = create_app()
 if __name__ == "__main__":
     # This avoids FLASK_APP detection issues on Windows
     port = int(os.getenv("PORT", "5000"))
-    app.run(host="127.0.0.1", port=port, debug=True)
+    app.run(host="127.0.0.1", port=port, debug=True, use_reloader=False)
 
 
