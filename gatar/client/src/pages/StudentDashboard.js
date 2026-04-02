@@ -8,9 +8,11 @@ import './StudentDashboard.css';
   1.  directly messing with chunking: https://react-chatbotify.com/docs/v2/examples/real_time_stream
   2.  simulating stream from pre-written text: in const settings, do botBubble: {simulateStream:true, streamSpeed:20}
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 // import { Link } from 'react-router-dom';
 import ChatBot, { ChatBotProvider } from "react-chatbotify";
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useAuth, useUser } from '@clerk/clerk-react';
 
 /* Current issues:
 1. figure out way to make the course change palpable
@@ -55,13 +57,13 @@ function StudentDashboard() {
 
   // vars
  //const [course, changeCourse] = useState(""); // change to student default
+  const [course, changeCourse] = useState("CIS4904"); // change to student default
 
   useEffect(() => {
     if (isLoaded && !isSignedIn) {
       navigate('/');
     }
   }, [isSignedIn, isLoaded, navigate]);
-
 
   if (role && role !== 'student') {
     navigate('/profLogin');
@@ -75,6 +77,11 @@ function StudentDashboard() {
         </div>
       </div>
     );
+  }
+  
+  // functions
+  const handleClick = (code) => {
+    changeCourse(code);
   }
 
   // functions

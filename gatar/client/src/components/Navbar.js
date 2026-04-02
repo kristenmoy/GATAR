@@ -6,9 +6,7 @@ export default function Navbar() {
   return (
     <>
       <header className="header-box">
-        <Link to="/">
           <h1>GATAR</h1>
-        </Link>
         {/* <nav className="nav-links">
           <Link to="/test">Test</Link>  
           <Link to="/profLogin">Prof Login</Link>
