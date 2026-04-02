@@ -35,7 +35,7 @@ def upload_to_qdrant(embedding_chunks, collection_name, course_code):
     if len(vectors) != len(embedding_chunks):
         raise ValueError("Mismatch between embeddings and chunks.")
     
-    vector_size = len(vectors[0])
+    vector_size = 1024
 
     # Create Collection
     collections = client.get_collections().collections

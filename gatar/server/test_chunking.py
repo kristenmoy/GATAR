@@ -4,6 +4,7 @@ import tiktoken
 from openai import OpenAI
 import os
 import json
+import re
 from sentence_transformers import SentenceTransformer
 from qdrant_client import QdrantClient
 from qdrant_client.models import VectorParams, Distance, PointStruct
@@ -87,7 +88,7 @@ def classify_paragraph(text):
     }
 
 # Prompt construction using chunked paragraphs
-def merge_paragraphs_llm(paragraphs, model="gpt-5.1"):
+def merge_paragraphs_llm(paragraphs, model="gpt-oss-120b"):
 
     prompt = f"""
     You are preparing text chunks for vector embeddings using the E5-large model.
@@ -102,7 +103,9 @@ def merge_paragraphs_llm(paragraphs, model="gpt-5.1"):
     Input paragraphs:
     {json.dumps(paragraphs, indent=2)}
 
-    Return JSON ONLY in this format:
+    Return ONLY valid JSON
+    Do not include explanations, comments, or markdown
+    Format:
     [
     {{
         "chunk_title": "...",
@@ -115,17 +118,30 @@ def merge_paragraphs_llm(paragraphs, model="gpt-5.1"):
     response = client.responses.create(
         model=model,
         input=prompt,
-        reasoning={"effort": "medium"},
+        # reasoning={"effort": "medium"},
+        temperature=0.2
         # text={"verbosity": "high"}
     )
 
-    raw = response.output_text.strip()
+    raw = None
+    for item in response.output:
+        # print(item)
+        if item.type == "message":
+            for content in item.content:
+                if content.type == "output_text":
+                    raw = content.text
+                    break
+    if raw is None:
+        raise ValueError("No text output found in model response")
+    raw = raw.strip()
+
     try:
         return json.loads(raw)
     except json.JSONDecodeError:
         print("LLM returned invalid JSON:")
+        cleaned_json = re.sub(r"```json|```", "", raw).strip()
         print(raw)
-        raise
+        return json.loads(cleaned_json)
 
 
 
@@ -163,16 +179,18 @@ def format_for_e5(chunk, doc_title=None, section_header=None, page_range=None):
 
 
 # full pdf -> embedding prepared pipeling
-def pdf_to_embedded_chunks(pdf_path, llm_model = "gpt-5.1", max_tokens = 350):
+def pdf_to_embedded_chunks(pdf_path, llm_model = "gpt-oss-120b", max_tokens = 350):
     
     # extract pdf title, pages, split into paragraphs, generate ids for paragraph metadata
     doc_title = os.path.splitext(os.path.basename(pdf_path))[0]
     pages = extract_pages(pdf_path)
     paragraphs = page_to_paragraphs(pages)
     para_ids = [{"id": index, "text": p["text"]} for index, p in enumerate(paragraphs)]
+    print("extracted title and pages into paragraphs")
 
     # use llm to merge the paragraphs into relevant sections and resplit if needed to match token limit
     merged_chunks = merge_paragraphs_llm(para_ids, model = llm_model)
+    print("extracted chunks")
 
     final_chunks = []
     for chunk in merged_chunks:
@@ -183,7 +201,7 @@ def pdf_to_embedded_chunks(pdf_path, llm_model = "gpt-5.1", max_tokens = 350):
                 "chunk_text": split_text,
                 "paragraph_ids": chunk["paragraph_ids"]
             })
-    
+    print("split chunks to fit token limit")
     # format for e5-large vector embedding
     embedding_chunks = []
     for chunk in final_chunks:
@@ -198,6 +216,7 @@ def pdf_to_embedded_chunks(pdf_path, llm_model = "gpt-5.1", max_tokens = 350):
                 "paragraph_ids": chunk["paragraph_ids"]
             }
         })
+    print("prepared chunks for embedding")
 
     return embedding_chunks
 
@@ -225,7 +244,9 @@ def build_llm_context(results):
 
 # if __name__ == "__main__":
     # testing API key is valid
-    # print(client.models.list())
+    # models = client.models.list()
+    # for m in models:
+    #     print(m.id)
 
     # testing the chunking->embedding pipeline
     # pdf_file = "C:/Users/Sophie Shah/Downloads/OSI_model.pdf"
