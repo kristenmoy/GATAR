@@ -7,6 +7,19 @@ import './StudentDashboard.css';
 /* for RT token streaming: 2 options - discuss w/ backend once API is back up
   1.  directly messing with chunking: https://react-chatbotify.com/docs/v2/examples/real_time_stream
   2.  simulating stream from pre-written text: in const settings, do botBubble: {simulateStream:true, streamSpeed:20}
+import React from 'react';
+// import { Link } from 'react-router-dom';
+import ChatBot, { ChatBotProvider } from "react-chatbotify";
+import { useState } from 'react';
+
+/* Current issues:
+1. figure out way to make the course change palpable
+   - restart chatbot UI, updateSettings to correct chatbot?
+   - switch chatbot/page entirely?
+2. link chatbot to UI [PRIORITY]
+   - talk to backend about that
+3. access student courses to reflect that in chatbot options
+   - wireframe: showed options already grabbed from student info + add a class opt.
 */
 
 const INITIAL_CLASSES = [
@@ -87,10 +100,27 @@ function StudentDashboard() {
         message: `Welcome to ${selectedClass.code}. How can I help you today?`,
         path: "end_loop"
     },
-    end_loop: {
-        message: "Connect LLM to this later.",
-        path: "end_loop"
+    ask: {
+      message: async (params) => {
+        const userMessage = params.userInput;
+
+        const res = await fetch("http://127.0.0.1:5000/api/chat", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ message: userMessage })
+        });
+
+        const data = await res.json();
+        return data.answer || "Sorry, something went wrong.";
+      },
+      path: "ask"
     }
+    // end_loop: {
+    //     message: "Connect LLM to this later.",
+    //     path: "end_loop"
+    // }
   }
 
   return (
