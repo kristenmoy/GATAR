@@ -5,19 +5,20 @@ import os
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from qdrant_client.http.models import PointStruct
+from qdrant_client.models import VectorParams, Distance
 from server.qdrant_service import get_client, upload_to_qdrant, query_qdrant
 from server.test_chunking import pdf_to_embedded_chunks, embed_with_e5, build_llm_context
 from server.test_chunking import client as llm_client
 import uuid
-from qdrant_client.models import VectorParams, Distance
 
-COLLECTION = os.getenv("QDRANT_COLLECTION")
+#COLLECTION = os.getenv("QDRANT_COLLECTION")
 
 def create_app():
     client = get_client()
 
     app = Flask(__name__)
-    CORS(app, resources={r"/api/*": {"origins": "*"}})  # fine for dev; tighten later
+    #CORS(app, resources={r"/api/*": {"origins": "*"}})  # fine for dev; tighten later
+    CORS(app)
 
     @app.get("/")
     def home():
@@ -35,6 +36,7 @@ def create_app():
         docs = data.get("documents", [])
         if not docs:
             return jsonify({"error": "No documents"}), 400
+        course_code = data.get("course_code")
 
 
         # Validate docs
@@ -61,7 +63,7 @@ def create_app():
         ]
 
 
-        client.upsert(collection_name=COLLECTION, points=points)
+        client.upsert(collection_name=course_code, points=points)
         return jsonify({"ok": True, "count": len(points)})
 
 
@@ -77,6 +79,10 @@ def create_app():
 
 
         file = request.files["file"]
+        course_code = request.form.get("course_code")
+
+        if not course_code:
+            return jsonify({"error": "Missing course_code"}), 400
 
 
         if file.filename == "" or not file.filename.lower().endswith(".pdf"):
@@ -91,7 +97,7 @@ def create_app():
         file.save(file_path)
         print("saving file")
         try:
-            info = client.get_collection(COLLECTION)
+            info = client.get_collection(course_name)
             # print(info)
             print("starting ingestion pipeline")
             # LLM chunking pipeline from test_chunking
@@ -122,9 +128,9 @@ def create_app():
             print("embedded chunks with e5")
 
             # print("Vector length:", len(vectors[0]))
-            info = client.get_collection(COLLECTION)
+            info = client.get_collection(course_code)
             # print(info)
-            client.upsert(collection_name=COLLECTION, points=points)
+            client.upsert(collection_name=course_code, points=points)
             print("saved chunks to Qdrant")
 
             return jsonify({
@@ -155,12 +161,78 @@ def create_app():
             }), 500
 
 
+    @app.post("/api/create-course")
+    def create_course():
+        data = request.get_json(force=True) or {}
+        course_code = data.get("course_code")
+
+        if not course_code:
+            return jsonify({"error": "Missing course_code"}), 400
+
+        course_code = course_code.upper()
+
+        client = get_client()
+
+        existing = [c.name for c in client.get_collections().collections]
+
+        if course_code not in existing:
+            client.create_collection(
+                collection_name=course_code,
+                vectors_config=VectorParams(
+                    size=1024,
+                    distance=Distance.COSINE
+                )
+            )
+
+            client.create_payload_index(
+                collection_name=course_code,
+                field_name="course_code",
+                field_schema="keyword"
+            )
+
+        if "courses" not in existing:
+            client.create_collection(
+                collection_name="courses",
+                vectors_config=VectorParams(
+                    size=1,
+                    distance=Distance.COSINE
+                )
+            )
+
+        client.upsert(
+            collection_name="courses",
+            points=[
+                PointStruct(
+                    id=str(uuid.uuid4()),
+                    vector=[0.0],
+                    payload={"course_code": course_code}
+                )
+            ]
+        )
+
+        return jsonify({"ok": True, "course": course_code})
+
+
+    @app.get("/api/courses")
+    def get_courses():
+        client = get_client()
+
+        results = client.scroll(
+            collection_name="courses",
+            limit=100
+        )[0]
+
+        return jsonify([
+            r.payload["course_code"] for r in results
+        ])
    
+
     @app.post("/api/search")
     def search():
         data = request.get_json(force=True) or {}
         q = data.get("query", "")
         limit = int(data.get("limit", 5))
+        course_code = data.get("course_code")
 
 
         if not q:
@@ -168,7 +240,7 @@ def create_app():
 
 
         qvec = embed_with_e5([q])[0]
-        hits = client.search(collection_name=COLLECTION, query_vector=qvec, limit=limit)
+        hits = client.search(collection_name=course_code, query_vector=qvec, limit=limit)
 
 
         return jsonify(
