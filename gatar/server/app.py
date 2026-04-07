@@ -92,7 +92,7 @@ def create_app():
         print("saving file")
         try:
             info = client.get_collection(COLLECTION)
-            print(info)
+            # print(info)
             print("starting ingestion pipeline")
             # LLM chunking pipeline from test_chunking
             embedding_chunks = pdf_to_embedded_chunks(file_path)
@@ -121,9 +121,9 @@ def create_app():
                 points.append(point)
             print("embedded chunks with e5")
 
-            print("Vector length:", len(vectors[0]))
+            # print("Vector length:", len(vectors[0]))
             info = client.get_collection(COLLECTION)
-            print(info)
+            # print(info)
             client.upsert(collection_name=COLLECTION, points=points)
             print("saved chunks to Qdrant")
 
@@ -200,9 +200,9 @@ def create_app():
             limit=5
         )
         hits = results.points
-        for i in hits:
-            print(type(i))
-            print(i.payload)
+        # for i in hits:
+        #     print(type(i))
+        #     print(i.payload)
         print("qdrant search completed")
 
         # 3. Build context
