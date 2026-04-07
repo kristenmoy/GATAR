@@ -5,18 +5,19 @@ import os
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from qdrant_client.http.models import PointStruct
+from qdrant_client.models import VectorParams, Distance
 from server.qdrant_service import get_client, upload_to_qdrant, query_qdrant
 from server.test_chunking import pdf_to_embedded_chunks, embed_with_e5, build_llm_context
 from server.test_chunking import client as llm_client
 import uuid
 
-COLLECTION = os.getenv("QDRANT_COLLECTION")
+#COLLECTION = os.getenv("QDRANT_COLLECTION")
 
 def create_app():
     client = get_client()
 
     app = Flask(__name__)
-    CORS(app, resources={r"/api/*": {"origins": "*"}})  # fine for dev; tighten later
+    CORS(app)
 
     @app.get("/")
     def home():
@@ -34,6 +35,7 @@ def create_app():
         docs = data.get("documents", [])
         if not docs:
             return jsonify({"error": "No documents"}), 400
+        course_code = data.get("course_code")
 
 
         # Validate docs
@@ -60,7 +62,7 @@ def create_app():
         ]
 
 
-        client.upsert(collection_name=COLLECTION, points=points)
+        client.upsert(collection_name=course_code, points=points)
         return jsonify({"ok": True, "count": len(points)})
 
 
@@ -73,6 +75,10 @@ def create_app():
 
 
         file = request.files["file"]
+        course_code = request.form.get("course_code")
+
+        if not course_code:
+            return jsonify({"error": "Missing course_code"}), 400
 
 
         if file.filename == "" or not file.filename.lower().endswith(".pdf"):
@@ -109,13 +115,13 @@ def create_app():
                         "doc_title": metadata.get("title"),
                         "section_header": metadata.get("section_header"),
                         "page": metadata.get("pages"),
-                        "course_code": chunk.get("course_code")
+                        "course_code": course_code
                     }
                 )
                 points.append(point)
 
 
-            client.upsert(collection_name=COLLECTION, points=points)
+            client.upsert(collection_name=course_code, points=points)
 
 
             return jsonify({
@@ -131,6 +137,7 @@ def create_app():
             if os.path.exists(file_path):
                 os.remove(file_path)
    
+
     @app.get("/api/qdrant-test")
     def qdrant_test():
         try:
@@ -146,12 +153,78 @@ def create_app():
             }), 500
 
 
-   
+    @app.post("/api/create-course")
+    def create_course():
+        data = request.get_json(force=True) or {}
+        course_code = data.get("course_code")
+
+        if not course_code:
+            return jsonify({"error": "Missing course_code"}), 400
+
+        course_code = course_code.upper()
+
+        client = get_client()
+
+        existing = [c.name for c in client.get_collections().collections]
+
+        if course_code not in existing:
+            client.create_collection(
+                collection_name=course_code,
+                vectors_config=VectorParams(
+                    size=1024,
+                    distance=Distance.COSINE
+                )
+            )
+
+            client.create_payload_index(
+                collection_name=course_code,
+                field_name="course_code",
+                field_schema="keyword"
+            )
+
+        if "courses" not in existing:
+            client.create_collection(
+                collection_name="courses",
+                vectors_config=VectorParams(
+                    size=1,
+                    distance=Distance.COSINE
+                )
+            )
+
+        client.upsert(
+            collection_name="courses",
+            points=[
+                PointStruct(
+                    id=str(uuid.uuid4()),
+                    vector=[0.0],
+                    payload={"course_code": course_code}
+                )
+            ]
+        )
+
+        return jsonify({"ok": True, "course": course_code})
+
+
+    @app.get("/api/courses")
+    def get_courses():
+        client = get_client()
+
+        results = client.scroll(
+            collection_name="courses",
+            limit=100
+        )[0]
+
+        return jsonify([
+            r.payload["course_code"] for r in results
+        ])
+    
+    
     @app.post("/api/search")
     def search():
         data = request.get_json(force=True) or {}
         q = data.get("query", "")
         limit = int(data.get("limit", 5))
+        course_code = data.get("course_code")
 
 
         if not q:
@@ -159,7 +232,7 @@ def create_app():
 
 
         qvec = embed_with_e5([q])[0]
-        hits = client.search(collection_name=COLLECTION, query_vector=qvec, limit=limit)
+        hits = client.search(collection_name=course_code, query_vector=qvec, limit=limit)
 
 
         return jsonify(
@@ -171,6 +244,78 @@ def create_app():
             }
         )
    
+    # @app.post("/api/ask")
+    # def ask():
+    #     # future addition: add memory so chatbot remembers conversation
+    #     data = request.json
+    #     question = data.get("question")
+    #     course_code = data.get("course_code")
+
+
+    #     if not question:
+    #         return jsonify({"error": "No question provided"}), 400
+
+
+    #     try:
+    #         # embed question with e5 then search qdrant for top results
+    #         '''
+    #         add a query filter by course  later
+    #         query_filter={
+    #             "must": [
+    #                 {"key": "title", "match": {"value": course}}
+    #             ]
+    #         }
+    #         '''
+    #         query_vector = embed_with_e5([f"query: {question}"])[0]
+
+
+    #         results = client.search(
+    #             collection_name=course_code,
+    #             query_vector=query_vector,
+    #             limit=5
+    #         )
+
+
+    #         # make sure LLM uses only the retrieved similarity vectors
+    #         context = build_llm_context(results)
+
+
+    #         # prompt design
+    #         response = llm_client.responses.create(
+    #             model="gpt-5.1",
+    #             input=f"""
+    #             - Answer the question using ONLY the context below.
+    #             - DO NOT use any outside context or sources to answer this question.
+    #             - DO NOT make up information.
+    #             - If the answer is not in the context, then say "I don't know based on the provided material."
+    #             - Be clear and concise.
+    #             - Cite sources using (Page X-Y).
+
+
+    #             Context:
+    #             {context}
+
+
+    #             Question:
+    #             {question}
+    #             """
+    #         )
+
+
+    #         answer = response.output_text.strip()
+
+
+    #         return jsonify({
+    #             "answer": answer,
+    #             "sources": [r.payload for r in results]
+    #         })
+
+
+    #     except Exception as e:
+    #         print("Query failed:", repr(e))
+    #         return jsonify({"error": "Query failed"}), 500
+
+
     @app.post("/api/chat")
     def chat():
         print("made it to chat")
@@ -218,7 +363,7 @@ def create_app():
         """
 
         response = llm_client.responses.create(
-            model="gpt-5.1",
+            model="gpt-oss-120b",
             input=prompt
         )
 
