@@ -105,9 +105,9 @@ function StudentDashboard() {
   const flow = {
     start: {
         message: `Welcome to ${selectedClass.code}. How can I help you today?`,
-        path: "end_loop"
+        path: "chat"
     },
-    ask: {
+    chat: {
       message: async (params) => {
         const userMessage = params.userInput;
 
@@ -122,7 +122,7 @@ function StudentDashboard() {
         const data = await res.json();
         return data.answer || "Sorry, something went wrong.";
       },
-      path: "ask"
+      path: "chat"
     }
     // end_loop: {
     //     message: "Connect LLM to this later.",
