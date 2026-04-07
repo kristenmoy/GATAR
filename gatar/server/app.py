@@ -184,10 +184,12 @@ def create_app():
     def chat():
         print("made it to chat")
         data = request.get_json(force=True) or {}
-        q = data.get("message", "")
-        print("question is: ", q)
-        if not q:
+        messages = data.get("messages", [])
+        if not messages:
             return jsonify({"error": "Missing message"}), 400
+        
+        q = messages[-1]["content"]
+        print("question is: ", q)
 
         # 1. Embed query
         qvec = embed_with_e5([q])[0]
@@ -207,6 +209,9 @@ def create_app():
 
         # 3. Build context
         context = build_llm_context(hits)
+        chat_history = "\n".join(
+            [f"{m['role']}: {m['content']}" for m in messages]
+        )
         print("finished building context")
 
         # 4. Prompt design
@@ -216,13 +221,16 @@ def create_app():
         - Use ONLY the context below to answer the question.
         - If you do not have enough context to answer, say "I do not have enough context to answer this question"
 
+        Conversation history:
+        {chat_history}
+
         Context:
         {context}
 
-        Question:
+        Latest question:
         {q}
 
-        Answer clearly and concisely.
+        Answer the latest user question clearly and concisely.
         """
 
         response = llm_client.responses.create(

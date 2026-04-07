@@ -54,6 +54,7 @@ function StudentDashboard() {
   const [showUploadModal, setShowUploadModal] = useState(false);
   const { user } = useUser();
   const role = user?.unsafeMetadata?.role;
+   const [messages, setMessages] = useState([]);
 
   // vars
  //const [course, changeCourse] = useState(""); // change to student default
@@ -102,6 +103,7 @@ function StudentDashboard() {
     general: {embedded:true, primaryColor:"#BD4F00", secondaryColor:"#BD4F00"},
     header: {title:`${selectedClass.code}`}
   };
+  const MAX_HISTORY = 10;
   const flow = {
     start: {
         message: `Welcome to ${selectedClass.code}. How can I help you today?`,
@@ -110,17 +112,31 @@ function StudentDashboard() {
     chat: {
       message: async (params) => {
         const userMessage = params.userInput;
+        
+        const updatedMessages = [
+          ...messages,
+          { role: "user", content: userMessage }
+        ];
+
+        const trimmedMessages = updatedMessages.slice(-MAX_HISTORY);
 
         const res = await fetch("http://127.0.0.1:5000/api/chat", {
           method: "POST",
           headers: {
             "Content-Type": "application/json"
           },
-          body: JSON.stringify({ message: userMessage })
+          body: JSON.stringify({ messages: trimmedMessages })
         });
 
         const data = await res.json();
-        return data.answer || "Sorry, something went wrong.";
+        const chatReply = data.answer || "Sorry, something went wrong.";
+        
+        setMessages([
+          ...updatedMessages,
+          { role: "assistant", content: chatReply }
+        ]);
+
+        return chatReply;
       },
       path: "chat"
     }
@@ -161,6 +177,7 @@ function StudentDashboard() {
                 onClick={() => {
                   setSelectedClass(cls);
                   setChatKey(prevKey => prevKey-1);
+                  setMessages([])
                 }}
                 title={cls.code}
               >
