@@ -11,13 +11,10 @@ from server.test_chunking import pdf_to_embedded_chunks, embed_with_e5, build_ll
 from server.test_chunking import client as llm_client
 import uuid
 
-#COLLECTION = os.getenv("QDRANT_COLLECTION")
-
 def create_app():
     client = get_client()
 
     app = Flask(__name__)
-    #CORS(app, resources={r"/api/*": {"origins": "*"}})  # fine for dev; tighten later
     CORS(app)
 
     @app.get("/")
@@ -97,7 +94,7 @@ def create_app():
         file.save(file_path)
         print("saving file")
         try:
-            info = client.get_collection(course_name)
+            info = client.get_collection(course_code)
             # print(info)
             print("starting ingestion pipeline")
             # LLM chunking pipeline from test_chunking
@@ -170,10 +167,11 @@ def create_app():
             return jsonify({"error": "Missing course_code"}), 400
 
         course_code = course_code.upper()
-
         client = get_client()
 
-        existing = [c.name for c in client.get_collections().collections]
+        # Get existing collections
+        collections = client.get_collections().collections
+        existing = [c.name for c in collections]
 
         if course_code not in existing:
             client.create_collection(
@@ -184,31 +182,54 @@ def create_app():
                 )
             )
 
-            client.create_payload_index(
-                collection_name=course_code,
-                field_name="course_code",
-                field_schema="keyword"
-            )
+            try:
+                client.create_payload_index(
+                    collection_name=course_code,
+                    field_name="course_code",
+                    field_schema="keyword"
+                )
+            except Exception:
+                pass
 
-        if "courses" not in existing:
+        recreate_courses_collection = False
+
+        if "courses" in existing:
+            info = client.get_collection("courses")
+            current_dim = info.config.params.vectors.size
+
+            if current_dim != 1024:
+                recreate_courses_collection = True
+
+        if "courses" not in existing or recreate_courses_collection:
+            if "courses" in existing:
+                client.delete_collection("courses")
+
             client.create_collection(
                 collection_name="courses",
                 vectors_config=VectorParams(
-                    size=1,
+                    size=1024,
                     distance=Distance.COSINE
                 )
             )
 
+        point = PointStruct(
+            id=str(uuid.uuid4()),
+            vector=[0.0] * 1024,
+            payload={"course_code": course_code}
+        )
+
         client.upsert(
             collection_name="courses",
-            points=[
-                PointStruct(
-                    id=str(uuid.uuid4()),
-                    vector=[0.0],
-                    payload={"course_code": course_code}
-                )
-            ]
+            points=[point]
         )
+
+        results = client.scroll(
+            collection_name="courses",
+            limit=10,
+            with_vectors=False
+        )[0]
+
+        print("COURSES COLLECTION:", results)
 
         return jsonify({"ok": True, "course": course_code})
 
@@ -260,6 +281,10 @@ def create_app():
         print("question is: ", q)
         if not q:
             return jsonify({"error": "Missing message"}), 400
+        
+        course_code = data.get("course_code")
+        if not course_code:
+            return jsonify({"error": "Missing course_code"}), 400
 
         # 1. Embed query
         qvec = embed_with_e5([q])[0]
@@ -267,7 +292,7 @@ def create_app():
 
         # 2. Qdrant search
         results = client.query_points(
-            collection_name="test",
+            collection_name=course_code,
             query=qvec,
             limit=5
         )

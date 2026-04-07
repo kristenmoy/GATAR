@@ -4,15 +4,6 @@ import { useAuth, useUser } from '@clerk/clerk-react';
 import './ProfDashboard.css';
 import UploadModal from "./ProfUpload";
 
-// we can change to store the courses in a database linking to a professor
-const INITIAL_CLASSES = [
-  { id: 1, code: 'CIS4914' },
-  { id: 2, code: 'CNT4106C' },
-  { id: 3, code: 'COP5556' },
-  { id: 4, code: 'MAC2312' },
-  { id: 5, code: 'CEN3031' },
-];
-
 function PersonIcon() {
   return (
     <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" className="person-icon">
@@ -25,13 +16,30 @@ function PersonIcon() {
 export default function ProfDashboard() {
   const { isSignedIn, isLoaded } = useAuth();
   const navigate = useNavigate();
-  const [classes, setClasses] = useState(INITIAL_CLASSES);
+  const [classes, setClasses] = useState([]);
   const [selectedClass, setSelectedClass] = useState(null);
   const [showAddModal, setShowAddModal] = useState(false);
   const [newCode, setNewCode] = useState('');
   const [showUploadModal, setShowUploadModal] = useState(false);
   const { user } = useUser();
   const role = user?.unsafeMetadata?.role;
+
+  const fetchCourses = () => {
+    fetch("http://localhost:5000/api/courses")
+      .then(res => res.json())
+      .then(data => {
+        setClasses(
+          data.map((code, index) => ({
+            id: index + 1,
+            code
+          }))
+        );
+      });
+  };
+
+  useEffect(() => {
+    fetchCourses();
+  }, []);
 
   useEffect(() => {
     if (isLoaded && !isSignedIn) {
@@ -53,10 +61,37 @@ export default function ProfDashboard() {
     );
   }
 
-  function handleAddClass() {
-    setClasses(prev => [...prev, { id: classes.length + 1, code: newCode.trim().toUpperCase() }]);
-    setNewCode('');
-    setShowAddModal(false);
+  async function handleAddClass() {
+    const courseCode = newCode.trim().toUpperCase();
+    if (!courseCode) return;
+
+    try {
+      const res = await fetch("http://localhost:5000/api/create-course", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ course_code: courseCode })
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        console.error("Backend error:", data.error);
+        return;
+      }
+      
+      setClasses(prev => [
+        ...prev,
+        { id: prev.length + 1, code: courseCode }
+      ]);
+
+      setNewCode('');
+      setShowAddModal(false);
+
+    } catch (err) {
+      console.error("Failed to create course:", err);
+    }
   }
 
   function handleAction(action) {
