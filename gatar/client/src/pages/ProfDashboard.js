@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth, useUser } from '@clerk/clerk-react';
 import './ProfDashboard.css';
 import UploadModal from "./ProfUpload";
+import ManageClassModal from "./ManageClass";
 
 // we can change to store the courses in a database linking to a professor
 const INITIAL_CLASSES = [
@@ -30,6 +31,7 @@ export default function ProfDashboard() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [newCode, setNewCode] = useState('');
   const [showUploadModal, setShowUploadModal] = useState(false);
+  const [showManageModal, setShowManageModal] = useState(false);
   const { user } = useUser();
   const role = user?.unsafeMetadata?.role;
 
@@ -61,9 +63,13 @@ export default function ProfDashboard() {
 
   function handleAction(action) {
   if (action === 'Upload')
-    {
-        setShowUploadModal(true);
-    }
+  {
+    setShowUploadModal(true);
+  }
+  else if(action === 'Manage Class')
+  {
+    setShowManageModal(true);
+  }
 }
 
   return (
@@ -111,9 +117,7 @@ export default function ProfDashboard() {
             </div>
             <div className="actions-grid">
               <button className="action-btn" onClick={() => handleAction('Upload')}>Upload</button>
-              <button className="action-btn" onClick={() => handleAction('Edit')}>Edit</button>
               <button className="action-btn" onClick={() => handleAction('Manage Class')}>Manage<br />Class</button>
-              <button className="action-btn" onClick={() => handleAction('Publish')}>Publish</button>
             </div>
           </div>
 
@@ -144,6 +148,10 @@ export default function ProfDashboard() {
             onClose={function() { setShowUploadModal(false); }}
         />
         )}
+      {showManageModal && React.createElement(ManageClassModal, {
+        classCode: selectedClass.code,
+        onClose: function() { setShowManageModal(false); }
+      })}
     </div>
   );
 }
