@@ -24,13 +24,6 @@ import { useAuth, useUser } from '@clerk/clerk-react';
    - wireframe: showed options already grabbed from student info + add a class opt.
 */
 
-const INITIAL_CLASSES = [
-  { id: 1, code: 'CIS4914' },
-  { id: 2, code: 'CNT4106C' },
-  { id: 3, code: 'COP5556' },
-  { id: 4, code: 'MAC2312' },
-  { id: 5, code: 'CEN3031' },
-];
 
 function PersonIcon() {
   return (
@@ -47,7 +40,7 @@ function StudentDashboard() {
   const {restartFlow, hasFlowStarted} = useFlow();
   const [chatKey, setChatKey] = useState(0);
   const {settings, updateSettings} = useSettings();
-  const [classes, setClasses] = useState(INITIAL_CLASSES);
+  const [classes, setClasses] = useState([]);
   const [selectedClass, setSelectedClass] = useState("");
   const [showAddModal, setShowAddModal] = useState(false);
   const [newCode, setNewCode] = useState('');
@@ -58,6 +51,20 @@ function StudentDashboard() {
   // vars
  //const [course, changeCourse] = useState(""); // change to student default
   const [course, changeCourse] = useState("CIS4904"); // change to student default
+
+  useEffect(() => {
+    fetch("http://localhost:5000/api/courses")
+      .then(res => res.json())
+      .then(data => {
+        setClasses(
+          data.map((code, index) => ({
+            id: index + 1,
+            code
+          }))
+        );
+      })
+      .catch(err => console.error("Failed to load courses:", err));
+  }, []);
 
   useEffect(() => {
     if (isLoaded && !isSignedIn) {
@@ -78,7 +85,8 @@ function StudentDashboard() {
       </div>
     );
   }
-  
+
+
   // functions
   const handleClick = (code) => {
     changeCourse(code);
@@ -100,7 +108,7 @@ function StudentDashboard() {
   // chatbot elements BD4F00
   const defaultSettings = {
     general: {embedded:true, primaryColor:"#BD4F00", secondaryColor:"#BD4F00"},
-    header: {title:`${selectedClass.code}`}
+    header: { title: selectedClass?.code || "Select a class" }
   };
   const flow = {
     start: {
@@ -116,7 +124,10 @@ function StudentDashboard() {
           headers: {
             "Content-Type": "application/json"
           },
-          body: JSON.stringify({ message: userMessage })
+          body: JSON.stringify({
+            message: userMessage,
+            course_code: selectedClass.code
+          })
         });
 
         const data = await res.json();
