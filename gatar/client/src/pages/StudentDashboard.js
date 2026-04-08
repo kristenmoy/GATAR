@@ -158,7 +158,7 @@ function StudentDashboard() {
   }
 
   return (
-    <div className="prof-dashboard-root dashboard-background">
+    <div className="student-dashboard-root dashboard-background">
 
       {!selectedClass ? (
         <div className="class-picker-overlay">

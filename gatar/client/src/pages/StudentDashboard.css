@@ -1,6 +1,6 @@
 .student-dashboard-root {
     display:flex;
-    height:calc(100vh-60px);
+    height:calc(100vh - 60px);
     overflow:hidden;
     align-items:center;
     justify-content: center;
@@ -8,19 +8,16 @@
 
 .dashboard-container {
   display: flex;
+  flex: 0 0 80vw;
   background: white;
   border-radius: 12px;
-  overflow: hidden;
   box-shadow: 0 8px 32px rgba(0,0,0,0.3);
-  width: 85vw;
-  height: 85vh;
-  max-width: 95vw;
 }
 
 .rcb-chat-window {
   /* chat window size adjustment - chatbotify override*/
-  width: 77vw !important;
-  height: 85vh !important;
+  width: calc(80vw - 150px) !important;
+  height: 80.5vh !important;
   border-top-left-radius:0 !important;
   background-color: #150FA9;
 }
