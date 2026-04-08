@@ -7,13 +7,11 @@ from pathlib import Path
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from qdrant_client.http.models import PointStruct
+from qdrant_client.models import VectorParams, Distance
 from server.qdrant_service import get_client, upload_to_qdrant, query_qdrant
 from server.test_chunking import pdf_to_embedded_chunks, embed_with_e5, build_llm_context
 from server.test_chunking import client as llm_client
 import uuid
-from qdrant_client.models import VectorParams, Distance
-
-COLLECTION = os.getenv("QDRANT_COLLECTION")
 
 # ── simple file registry (lives next to app.py) ──────────────────────────────
 REGISTRY_PATH = Path("file_registry.json")
@@ -31,7 +29,7 @@ def create_app():
     client = get_client()
 
     app = Flask(__name__)
-    CORS(app, resources={r"/api/*": {"origins": "*"}})  # fine for dev; tighten later
+    CORS(app)
 
     @app.get("/")
     def home():
@@ -49,6 +47,7 @@ def create_app():
         docs = data.get("documents", [])
         if not docs:
             return jsonify({"error": "No documents"}), 400
+        course_code = data.get("course_code")
 
 
         # Validate docs
@@ -75,7 +74,7 @@ def create_app():
         ]
 
 
-        client.upsert(collection_name=COLLECTION, points=points)
+        client.upsert(collection_name=course_code, points=points)
         return jsonify({"ok": True, "count": len(points)})
 
 
@@ -90,6 +89,12 @@ def create_app():
             return jsonify({"error": "No file provided"}), 400
 
         file = request.files["file"]
+        course_code = request.form.get("course_code")
+
+        if not course_code:
+            return jsonify({"error": "Missing course_code"}), 400
+
+
         if file.filename == "" or not file.filename.lower().endswith(".pdf"):
             return jsonify({"error": "Invalid PDF file"}), 400
         course_code = request.form.get("course_code", "UNKNOWN")
@@ -102,8 +107,8 @@ def create_app():
         file.save(file_path)
         print("saving file")
         try:
-            info = client.get_collection(COLLECTION)
-            print(info)
+            info = client.get_collection(course_code)
+            # print(info)
             print("starting ingestion pipeline")
             # LLM chunking pipeline from test_chunking
             embedding_chunks = pdf_to_embedded_chunks(file_path)
@@ -131,10 +136,10 @@ def create_app():
                 points.append(point)
             print("embedded chunks with e5")
 
-            print("Vector length:", len(vectors[0]))
-            info = client.get_collection(COLLECTION)
-            print(info)
-            client.upsert(collection_name=COLLECTION, points=points)
+            # print("Vector length:", len(vectors[0]))
+            info = client.get_collection(course_code)
+            # print(info)
+            client.upsert(collection_name=course_code, points=points)
             print("saved chunks to Qdrant")
 
             registry = _load_registry()
@@ -211,11 +216,102 @@ def create_app():
         return jsonify({"ok": True})
 
 
+    @app.post("/api/create-course")
+    def create_course():
+        data = request.get_json(force=True) or {}
+        course_code = data.get("course_code")
+
+        if not course_code:
+            return jsonify({"error": "Missing course_code"}), 400
+
+        course_code = course_code.upper()
+        client = get_client()
+
+        # Get existing collections
+        collections = client.get_collections().collections
+        existing = [c.name for c in collections]
+
+        if course_code not in existing:
+            client.create_collection(
+                collection_name=course_code,
+                vectors_config=VectorParams(
+                    size=1024,
+                    distance=Distance.COSINE
+                )
+            )
+
+            try:
+                client.create_payload_index(
+                    collection_name=course_code,
+                    field_name="course_code",
+                    field_schema="keyword"
+                )
+            except Exception:
+                pass
+
+        recreate_courses_collection = False
+
+        if "courses" in existing:
+            info = client.get_collection("courses")
+            current_dim = info.config.params.vectors.size
+
+            if current_dim != 1024:
+                recreate_courses_collection = True
+
+        if "courses" not in existing or recreate_courses_collection:
+            if "courses" in existing:
+                client.delete_collection("courses")
+
+            client.create_collection(
+                collection_name="courses",
+                vectors_config=VectorParams(
+                    size=1024,
+                    distance=Distance.COSINE
+                )
+            )
+
+        point = PointStruct(
+            id=str(uuid.uuid4()),
+            vector=[0.0] * 1024,
+            payload={"course_code": course_code}
+        )
+
+        client.upsert(
+            collection_name="courses",
+            points=[point]
+        )
+
+        results = client.scroll(
+            collection_name="courses",
+            limit=10,
+            with_vectors=False
+        )[0]
+
+        print("COURSES COLLECTION:", results)
+
+        return jsonify({"ok": True, "course": course_code})
+
+
+    @app.get("/api/courses")
+    def get_courses():
+        client = get_client()
+
+        results = client.scroll(
+            collection_name="courses",
+            limit=100
+        )[0]
+
+        return jsonify([
+            r.payload["course_code"] for r in results
+        ])
+   
+
     @app.post("/api/search")
     def search():
         data = request.get_json(force=True) or {}
         q = data.get("query", "")
         limit = int(data.get("limit", 5))
+        course_code = data.get("course_code")
 
 
         if not q:
@@ -223,7 +319,7 @@ def create_app():
 
 
         qvec = embed_with_e5([q])[0]
-        hits = client.search(collection_name=COLLECTION, query_vector=qvec, limit=limit)
+        hits = client.search(collection_name=course_code, query_vector=qvec, limit=limit)
 
 
         return jsonify(
@@ -240,10 +336,15 @@ def create_app():
     def chat():
         print("made it to chat")
         data = request.get_json(force=True) or {}
-        q = data.get("message", "")
-        print("question is: ", q)
-        if not q:
+        messages = data.get("messages", [])
+        if not messages:
             return jsonify({"error": "Missing message"}), 400
+        
+        q = messages[-1]["content"]
+        print("question is: ", q)
+        course_code = data.get("course_code")
+        if not course_code:
+            return jsonify({"error": "Missing course_code"}), 400
 
         # 1. Embed query
         qvec = embed_with_e5([q])[0]
@@ -251,18 +352,21 @@ def create_app():
 
         # 2. Qdrant search
         results = client.query_points(
-            collection_name="test",
+            collection_name=course_code,
             query=qvec,
             limit=5
         )
         hits = results.points
-        for i in hits:
-            print(type(i))
-            print(i.payload)
+        # for i in hits:
+        #     print(type(i))
+        #     print(i.payload)
         print("qdrant search completed")
 
         # 3. Build context
         context = build_llm_context(hits)
+        chat_history = "\n".join(
+            [f"{m['role']}: {m['content']}" for m in messages]
+        )
         print("finished building context")
 
         # 4. Prompt design
@@ -272,13 +376,16 @@ def create_app():
         - Use ONLY the context below to answer the question.
         - If you do not have enough context to answer, say "I do not have enough context to answer this question"
 
+        Conversation history:
+        {chat_history}
+
         Context:
         {context}
 
-        Question:
+        Latest question:
         {q}
 
-        Answer clearly and concisely.
+        Answer the latest user question clearly and concisely.
         """
 
         response = llm_client.responses.create(

@@ -24,13 +24,6 @@ import { useAuth, useUser } from '@clerk/clerk-react';
    - wireframe: showed options already grabbed from student info + add a class opt.
 */
 
-const INITIAL_CLASSES = [
-  { id: 1, code: 'CIS4914' },
-  { id: 2, code: 'CNT4106C' },
-  { id: 3, code: 'COP5556' },
-  { id: 4, code: 'MAC2312' },
-  { id: 5, code: 'CEN3031' },
-];
 
 function PersonIcon() {
   return (
@@ -47,17 +40,32 @@ function StudentDashboard() {
   const {restartFlow, hasFlowStarted} = useFlow();
   const [chatKey, setChatKey] = useState(0);
   const {settings, updateSettings} = useSettings();
-  const [classes, setClasses] = useState(INITIAL_CLASSES);
+  const [classes, setClasses] = useState([]);
   const [selectedClass, setSelectedClass] = useState("");
   const [showAddModal, setShowAddModal] = useState(false);
   const [newCode, setNewCode] = useState('');
   const [showUploadModal, setShowUploadModal] = useState(false);
   const { user } = useUser();
   const role = user?.unsafeMetadata?.role;
+   const [messages, setMessages] = useState([]);
 
   // vars
  //const [course, changeCourse] = useState(""); // change to student default
   const [course, changeCourse] = useState("CIS4904"); // change to student default
+
+  useEffect(() => {
+    fetch("http://localhost:5000/api/courses")
+      .then(res => res.json())
+      .then(data => {
+        setClasses(
+          data.map((code, index) => ({
+            id: index + 1,
+            code
+          }))
+        );
+      })
+      .catch(err => console.error("Failed to load courses:", err));
+  }, []);
 
   useEffect(() => {
     if (isLoaded && !isSignedIn) {
@@ -78,7 +86,8 @@ function StudentDashboard() {
       </div>
     );
   }
-  
+
+
   // functions
   const handleClick = (code) => {
     changeCourse(code);
@@ -100,29 +109,47 @@ function StudentDashboard() {
   // chatbot elements BD4F00
   const defaultSettings = {
     general: {embedded:true, primaryColor:"#BD4F00", secondaryColor:"#BD4F00"},
-    header: {title:`${selectedClass.code}`}
+    header: { title: selectedClass?.code || "Select a class" }
   };
+  const MAX_HISTORY = 10;
   const flow = {
     start: {
         message: `Welcome to ${selectedClass.code}. How can I help you today?`,
-        path: "end_loop"
+        path: "chat"
     },
-    ask: {
+    chat: {
       message: async (params) => {
         const userMessage = params.userInput;
+        
+        const updatedMessages = [
+          ...messages,
+          { role: "user", content: userMessage }
+        ];
+
+        const trimmedMessages = updatedMessages.slice(-MAX_HISTORY);
 
         const res = await fetch("http://127.0.0.1:5000/api/chat", {
           method: "POST",
           headers: {
             "Content-Type": "application/json"
           },
-          body: JSON.stringify({ message: userMessage })
+          body: JSON.stringify({
+            messages: trimmedMessages,
+            course_code: selectedClass.code
+          })
         });
 
         const data = await res.json();
-        return data.answer || "Sorry, something went wrong.";
+        const chatReply = data.answer || "Sorry, something went wrong.";
+        
+        setMessages([
+          ...updatedMessages,
+          { role: "assistant", content: chatReply }
+        ]);
+
+        return chatReply;
       },
-      path: "ask"
+      path: "chat"
     }
     // end_loop: {
     //     message: "Connect LLM to this later.",
@@ -131,7 +158,7 @@ function StudentDashboard() {
   }
 
   return (
-    <div className="prof-dashboard-root dashboard-background">
+    <div className="student-dashboard-root dashboard-background">
 
       {!selectedClass ? (
         <div className="class-picker-overlay">
@@ -161,6 +188,7 @@ function StudentDashboard() {
                 onClick={() => {
                   setSelectedClass(cls);
                   setChatKey(prevKey => prevKey-1);
+                  setMessages([])
                 }}
                 title={cls.code}
               >
