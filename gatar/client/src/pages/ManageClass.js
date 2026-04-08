@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from "react";
+import './ManageClass.css';
+import './ProfDashboard.css';
 
 export default function ManageClassModal({ onClose, classCode }) {
   const [files, setFiles] = useState([]);
@@ -23,30 +25,31 @@ export default function ManageClassModal({ onClose, classCode }) {
   }, [classCode]);
 
   async function handleRemove(fileId, fileName) {
-    if (!window.confirm(`Remove "${fileName}"?`)) return;
     setRemoving(fileId);
-    
+
     const res = await fetch(`http://localhost:5000/api/files/${fileId}`, {
-    method: "DELETE",
+      method: "DELETE",
     });
     if (res.ok) {
-    setFiles(prev => prev.filter(f => f.id !== fileId));
+      setFiles(prev => prev.filter(f => f.id !== fileId));
     } else {
-    alert("Failed to remove file.");
+      alert("Failed to remove file.");
     }
-      setRemoving(null);
+    setRemoving(null);
   }
 
   const fileRows = files.map(file =>
-    React.createElement("li", { key: file.id, className: "manage-file-row" },
-      React.createElement("div", { className: "manage-pdf-icon" }, "PDF"),
-      React.createElement("button", {
-        className: "manage-remove-btn",
-        onClick: () => handleRemove(file.id, file.name),
-        disabled: removing === file.id
-      }, removing === file.id ? "…" : "Remove")
-    )
-  );
+    React.createElement("div", { key: file.id, className: "manage-file-row" },
+        React.createElement("div", { className: "file-left" },
+        React.createElement("span", { className: "manage-pdf-icon" }, "📄"),
+        React.createElement("span", { className: "manage-file-name" }, file.name),
+        React.createElement("button", {
+            className: "manage-remove-btn",
+            onClick: () => handleRemove(file.id, file.name),
+            disabled: removing === file.id}, "Remove")
+            )
+        ),
+    );
 
   let bodyContent;
   if (loading) {
