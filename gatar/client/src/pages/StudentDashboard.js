@@ -100,12 +100,13 @@ function StudentDashboard() {
   // chatbot elements BD4F00
   const defaultSettings = {
     general: {embedded:true, primaryColor:"#BD4F00", secondaryColor:"#BD4F00"},
-    header: {title:`${selectedClass.code}`}
+    header: {title:`${selectedClass.code}`},
+    //chatWindowStyle: {width: "100%", height: "85vh"}
   };
   const flow = {
     start: {
         message: `Welcome to ${selectedClass.code}. How can I help you today?`,
-        path: "end_loop"
+        path: "ask"
     },
     ask: {
       message: async (params) => {
@@ -131,7 +132,7 @@ function StudentDashboard() {
   }
 
   return (
-    <div className="prof-dashboard-root dashboard-background">
+    <div className="student-dashboard-root dashboard-background">
 
       {!selectedClass ? (
         <div className="class-picker-overlay">
