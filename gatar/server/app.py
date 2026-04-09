@@ -385,6 +385,9 @@ def create_app():
         {q}
 
         Answer the latest user question clearly and concisely.
+
+        
+        Give a citation for all of the context you used as a new line for each part in the form of Citation: Title: title, Section Header: section header, Page numbers: page numbers using the metadata from the {context}
         """
 
         response = llm_client.responses.create(
