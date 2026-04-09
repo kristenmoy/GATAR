@@ -2,6 +2,7 @@ import React, { useState, useEffect} from 'react';
 import { useNavigate } from 'react-router-dom';
 import ChatBot, { ChatBotProvider, useSettings, useFlow } from "react-chatbotify";
 import { useAuth, useUser } from '@clerk/clerk-react';
+import ReactMarkdown from 'react-markdown';
 import './StudentDashboard.css';
 
 /* for RT token streaming: 2 options - discuss w/ backend once API is back up
@@ -41,10 +42,7 @@ function StudentDashboard() {
   const [chatKey, setChatKey] = useState(0);
   const {settings, updateSettings} = useSettings();
   const [classes, setClasses] = useState([]);
-  const [selectedClass, setSelectedClass] = useState("");
-  const [showAddModal, setShowAddModal] = useState(false);
-  const [newCode, setNewCode] = useState('');
-  const [showUploadModal, setShowUploadModal] = useState(false);
+  const [selectedClass, setSelectedClass] = useState(null);
   const { user } = useUser();
   const role = user?.unsafeMetadata?.role;
    const [messages, setMessages] = useState([]);
@@ -53,7 +51,7 @@ function StudentDashboard() {
  //const [course, changeCourse] = useState(""); // change to student default
   const [course, changeCourse] = useState("CIS4904"); // change to student default
 
-  useEffect(() => {
+  const fetchCourses = () => {
     fetch("http://localhost:5000/api/courses")
       .then(res => res.json())
       .then(data => {
@@ -63,8 +61,11 @@ function StudentDashboard() {
             code
           }))
         );
-      })
-      .catch(err => console.error("Failed to load courses:", err));
+      });
+  };
+
+  useEffect(() => {
+    fetchCourses();
   }, []);
 
   useEffect(() => {
@@ -87,34 +88,16 @@ function StudentDashboard() {
     );
   }
 
-
-  // functions
-  const handleClick = (code) => {
-    changeCourse(code);
-  }
-
-  // functions
-  function handleAddClass() {
-    setClasses(prev => [...prev, { id: classes.length + 1, code: newCode.trim().toUpperCase() }]);
-    setNewCode('');
-    setShowAddModal(false);
-  }
-  // function handleAction(action) {
-  //   if (action === 'Upload')
-  //     {
-  //         setShowUploadModal(true);
-  //     }
-  // }
-
   // chatbot elements BD4F00
   const defaultSettings = {
     general: {embedded:true, primaryColor:"#BD4F00", secondaryColor:"#BD4F00"},
-    header: { title: selectedClass?.code || "Select a class" }
+    header: { title: selectedClass?.code || "Select a class" },
+    botBubble: { render: (message) => <ReactMarkdown>{message}</ReactMarkdown> }
   };
   const MAX_HISTORY = 10;
   const flow = {
     start: {
-        message: `Welcome to ${selectedClass.code}. How can I help you today?`,
+        message: `Welcome to ${selectedClass?.code || "your class"}. How can I help you today?`,
         path: "chat"
     },
     chat: {
@@ -159,25 +142,7 @@ function StudentDashboard() {
 
   return (
     <div className="student-dashboard-root dashboard-background">
-
-      {!selectedClass ? (
-        <div className="class-picker-overlay">
-          <div className="class-picker-card"> 
-              <h2>Welcome to <span className="brand">GATAR</span>!</h2>
-              <p className="picker-sub">Which class would you like to study for?</p>
-          
-              <div className="class-grid">
-                {classes.map(cls => (
-                    <button key={cls.id} className="class-tile" onClick={() => setSelectedClass(cls)}>
-                      <PersonIcon />
-                      <span className="tile-code">{cls.code}</span>
-                    </button>
-                  ))}
-              </div>
-              <button className="add-class-btn" onClick={() => setShowAddModal(true)}>Add class</button>
-          </div>
-        </div>
-      ) : (
+      {selectedClass ? (
         <div className="dashboard-container">
 
           <div className="class-sidebar">
@@ -216,24 +181,11 @@ function StudentDashboard() {
           </div> */}
 
         </div>
-        // <div className="center-screen">
-        //   <div className="left-side">
-        //     <div className="side-wrapper">
-        //       <h3>Class list:</h3>
-        //       <button type="button"
-        //       onClick={() => handleClick("mewo")}>mewo</button>
-        //       <button>test</button>
-        //       <button>class1</button>
-        //       <button>class2</button>
-        //     </div>
-        //   </div>
-        //   <div className="right-side">
-        //     <ChatBotProvider>
-        //       <ChatBot settings={settings} flow={flow}/>
-        //     </ChatBotProvider>
-        //   </div>
-        // </div>
-      )} 
+      ) : (
+        <div className="center-screen">
+          <h1>Loading classes...</h1>
+        </div>
+      )}
     </div>
   );
 }
