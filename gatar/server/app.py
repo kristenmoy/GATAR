@@ -2,6 +2,8 @@ from dotenv import load_dotenv
 load_dotenv()
 
 import os
+import json
+from pathlib import Path
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from qdrant_client.http.models import PointStruct
@@ -10,6 +12,18 @@ from server.qdrant_service import get_client, upload_to_qdrant, query_qdrant
 from server.test_chunking import pdf_to_embedded_chunks, embed_with_e5, build_llm_context
 from server.test_chunking import client as llm_client
 import uuid
+
+# ── simple file registry (lives next to app.py) ──────────────────────────────
+REGISTRY_PATH = Path("file_registry.json")
+
+def _load_registry() -> list:
+    if REGISTRY_PATH.exists():
+        return json.loads(REGISTRY_PATH.read_text())
+    return []
+
+def _save_registry(records: list):
+    REGISTRY_PATH.write_text(json.dumps(records, indent=2))
+
 
 def create_app():
     client = get_client()
@@ -74,7 +88,6 @@ def create_app():
         if "file" not in request.files:
             return jsonify({"error": "No file provided"}), 400
 
-
         file = request.files["file"]
         course_code = request.form.get("course_code")
 
@@ -84,12 +97,12 @@ def create_app():
 
         if file.filename == "" or not file.filename.lower().endswith(".pdf"):
             return jsonify({"error": "Invalid PDF file"}), 400
+        course_code = request.form.get("course_code", "UNKNOWN")
 
-
-        # Save temporarily to uploads directory
         upload_dir = "uploads"
         os.makedirs(upload_dir, exist_ok=True)
-        unique_name = f"{uuid.uuid4()}_{file.filename}"
+        upload_id = str(uuid.uuid4())
+        unique_name = f"{upload_id}_{file.filename}"
         file_path = os.path.join(upload_dir, unique_name)
         file.save(file_path)
         print("saving file")
@@ -103,10 +116,8 @@ def create_app():
 
             # Convert to existing ingestion format with unique chunk id
             points = []
-
-
             vectors = embed_with_e5([c["text_for_embedding"] for c in embedding_chunks])
-            
+
             for chunk, vector in zip(embedding_chunks, vectors):
                 metadata = chunk["metadata"]
 
@@ -118,7 +129,8 @@ def create_app():
                         "doc_title": metadata.get("title"),
                         "section_header": metadata.get("section_header"),
                         "page": metadata.get("pages"),
-                        "course_code": chunk.get("course_code")
+                        "course_code": course_code,
+                        "upload_id": upload_id,
                     }
                 )
                 points.append(point)
@@ -130,11 +142,19 @@ def create_app():
             client.upsert(collection_name=course_code, points=points)
             print("saved chunks to Qdrant")
 
+            registry = _load_registry()
+            registry.append({
+                "id": upload_id,
+                "name": file.filename,
+                "course_code": course_code,
+                "chunks": len(points),
+            })
+            _save_registry(registry)
+
             return jsonify({
                 "ok": True,
                 "chunks_created": len(points)
             })
-
 
         except Exception as e:
             print("PDF processing failed:", repr(e))
@@ -142,7 +162,8 @@ def create_app():
         finally:
             if os.path.exists(file_path):
                 os.remove(file_path)
-   
+
+
     @app.get("/api/qdrant-test")
     def qdrant_test():
         try:
@@ -156,6 +177,42 @@ def create_app():
                 "connected": False,
                 "error": str(e)
             }), 500
+
+    @app.get("/api/files/<class_code>")
+    def list_files(class_code):
+        registry = _load_registry()
+        files = [r for r in registry if r["course_code"] == class_code]
+        return jsonify(files)
+
+    @app.delete("/api/files/<file_id>")
+    def delete_file(file_id):
+        registry = _load_registry()
+        record = next((r for r in registry if r["id"] == file_id), None)
+        if not record:
+            return jsonify({"error": "File not found"}), 404
+
+        course_code = record["course_code"]
+        print("Deleting upload_id:", file_id, "from collection:", course_code)
+
+        try:
+            from qdrant_client.models import Filter, FieldCondition, MatchValue
+            client.delete(
+                collection_name=course_code,
+                points_selector=Filter(
+                    must=[
+                        FieldCondition(
+                            key="upload_id",
+                            match=MatchValue(value=file_id)
+                        )
+                    ]
+                )
+            )
+            print("Deleted chunks from Qdrant successfully")
+        except Exception as e:
+            print("Qdrant delete error:", repr(e))
+
+        _save_registry([r for r in registry if r["id"] != file_id])
+        return jsonify({"ok": True})
 
 
     @app.post("/api/create-course")
@@ -272,7 +329,8 @@ def create_app():
                 ]
             }
         )
-   
+
+
     @app.post("/api/chat")
     def chat():
         print("made it to chat")
@@ -327,6 +385,9 @@ def create_app():
         {q}
 
         Answer the latest user question clearly and concisely.
+
+        
+        Give a citation for all of the context you used as a new line for each part in the form of Citation: Title: title, Section Header: section header, Page numbers: page numbers using the metadata from the {context}
         """
 
         response = llm_client.responses.create(
@@ -353,8 +414,6 @@ def create_app():
     return app
 
 
-
-
 app = create_app()
 
 
@@ -362,5 +421,3 @@ if __name__ == "__main__":
     # This avoids FLASK_APP detection issues on Windows
     port = int(os.getenv("PORT", "5000"))
     app.run(host="127.0.0.1", port=port, debug=True, use_reloader=False)
-
-
