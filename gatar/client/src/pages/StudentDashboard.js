@@ -51,21 +51,23 @@ function StudentDashboard() {
  //const [course, changeCourse] = useState(""); // change to student default
   const [course, changeCourse] = useState("CIS4904"); // change to student default
 
-  const fetchCourses = () => {
+  useEffect(() => {
     fetch("http://localhost:5000/api/courses")
       .then(res => res.json())
       .then(data => {
-        setClasses(
-          data.map((code, index) => ({
-            id: index + 1,
-            code
-          }))
-        );
-      });
-  };
+        const formatted = data.map((code, index) => ({
+          id: index + 1,
+          code
+        }));
 
-  useEffect(() => {
-    fetchCourses();
+        setClasses(formatted);
+
+        // ✅ auto-select first class
+        if (formatted.length > 0) {
+          setSelectedClass(formatted[0]);
+        }
+      })
+      .catch(err => console.error("Failed to load courses:", err));
   }, []);
 
   useEffect(() => {
