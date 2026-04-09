@@ -34,6 +34,13 @@ function PersonIcon() {
   );
 }
 
+function cleanFileNames(text) {
+  return text.replace(
+    /[a-f0-9-]{36}(_\d+)*_/g,
+    ""
+  );
+}
+
 function StudentDashboard() {
   const { isSignedIn, isLoaded } = useAuth();
   const navigate = useNavigate();
@@ -140,7 +147,8 @@ function StudentDashboard() {
         });
 
         const data = await res.json();
-        const chatReply = data.answer || "Sorry, something went wrong.";
+        const rawReply = data.answer || "Sorry, something went wrong.";
+        const chatReply = cleanFileNames(rawReply);
         
         setMessages([
           ...updatedMessages,
