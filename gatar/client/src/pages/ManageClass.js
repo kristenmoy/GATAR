@@ -24,32 +24,44 @@ export default function ManageClassModal({ onClose, classCode }) {
     fetchFiles();
   }, [classCode]);
 
-  async function handleRemove(fileId, fileName) {
+  async function handleRemove(fileId) {
     setRemoving(fileId);
 
-    const res = await fetch(`http://localhost:5000/api/files/${fileId}`, {
-      method: "DELETE",
-    });
-    if (res.ok) {
+    try {
+      const res = await fetch(
+        `http://localhost:5000/api/files/${fileId}?course_code=${classCode}`,
+        { method: "DELETE" }
+      );
+
+      if (!res.ok) {
+        throw new Error("Delete failed");
+      }
+
       setFiles(prev => prev.filter(f => f.id !== fileId));
-    } else {
+
+    } catch (err) {
+      console.error(err);
       alert("Failed to remove file.");
     }
+
     setRemoving(null);
   }
 
-  const fileRows = files.map(file =>
-    React.createElement("div", { key: file.id, className: "manage-file-row" },
-        React.createElement("div", { className: "file-left" },
+  const fileRows = files.map(file => {
+    const cleanName = file.name.split("_").pop();
+
+    return React.createElement("div", { key: file.id, className: "manage-file-row" },
+      React.createElement("div", { className: "file-left" },
         React.createElement("span", { className: "manage-pdf-icon" }, "📄"),
-        React.createElement("span", { className: "manage-file-name" }, file.name),
+        React.createElement("span", { className: "manage-file-name" }, cleanName), // 👈 USE IT HERE
         React.createElement("button", {
-            className: "manage-remove-btn",
-            onClick: () => handleRemove(file.id, file.name),
-            disabled: removing === file.id}, "Remove")
-            )
-        ),
+          className: "manage-remove-btn",
+          onClick: () => handleRemove(file.id),
+          disabled: removing === file.id
+        }, "Remove")
+      )
     );
+  });
 
   let bodyContent;
   if (loading) {
