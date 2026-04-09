@@ -191,28 +191,27 @@ def create_app():
         if not record:
             return jsonify({"error": "File not found"}), 404
 
-        print("Deleting upload_id:", file_id)
+        course_code = record["course_code"]
+        print("Deleting upload_id:", file_id, "from collection:", course_code)
 
         try:
+            from qdrant_client.models import Filter, FieldCondition, MatchValue
             client.delete(
-                collection_name=COLLECTION,
-                points_selector={
-                    "filter": {
-                        "must": [
-                            {
-                                "key": "upload_id",
-                                "match": {"value": file_id}
-                            }
-                        ]
-                    }
-                }
+                collection_name=course_code,
+                points_selector=Filter(
+                    must=[
+                        FieldCondition(
+                            key="upload_id",
+                            match=MatchValue(value=file_id)
+                        )
+                    ]
+                )
             )
+            print("Deleted chunks from Qdrant successfully")
         except Exception as e:
             print("Qdrant delete error:", repr(e))
-            # continue anyway
 
         _save_registry([r for r in registry if r["id"] != file_id])
-
         return jsonify({"ok": True})
 
 
