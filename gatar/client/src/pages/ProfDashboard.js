@@ -97,15 +97,15 @@ export default function ProfDashboard() {
   }
 
   function handleAction(action) {
-  if (action === 'Upload')
-  {
-    setShowUploadModal(true);
+    if (action === 'Upload')
+    {
+      setShowUploadModal(true);
+    }
+    else if(action === 'Manage Class')
+    {
+      setShowManageModal(true);
+    }
   }
-  else if(action === 'Manage Class')
-  {
-    setShowManageModal(true);
-  }
-}
 
   return (
     <div className="prof-dashboard-root dashboard-background">

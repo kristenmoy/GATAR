@@ -13,17 +13,6 @@ from server.test_chunking import pdf_to_embedded_chunks, embed_with_e5, build_ll
 from server.test_chunking import client as llm_client
 import uuid
 
-# ── simple file registry (lives next to app.py) ──────────────────────────────
-REGISTRY_PATH = Path("file_registry.json")
-
-def _load_registry() -> list:
-    if REGISTRY_PATH.exists():
-        return json.loads(REGISTRY_PATH.read_text())
-    return []
-
-def _save_registry(records: list):
-    REGISTRY_PATH.write_text(json.dumps(records, indent=2))
-
 
 def create_app():
     client = get_client()
@@ -126,7 +115,7 @@ def create_app():
                     vector=vector,
                     payload={
                         "text": chunk["text_for_embedding"],
-                        "doc_title": metadata.get("title"),
+                        "doc_title": metadata.get("title") or file.filename,
                         "section_header": metadata.get("section_header"),
                         "page": metadata.get("pages"),
                         "course_code": course_code,
@@ -141,15 +130,6 @@ def create_app():
             # print(info)
             client.upsert(collection_name=course_code, points=points)
             print("saved chunks to Qdrant")
-
-            registry = _load_registry()
-            registry.append({
-                "id": upload_id,
-                "name": file.filename,
-                "course_code": course_code,
-                "chunks": len(points),
-            })
-            _save_registry(registry)
 
             return jsonify({
                 "ok": True,
@@ -178,40 +158,56 @@ def create_app():
                 "error": str(e)
             }), 500
 
-    @app.get("/api/files/<class_code>")
-    def list_files(class_code):
-        registry = _load_registry()
-        files = [r for r in registry if r["course_code"] == class_code]
-        return jsonify(files)
+
+    @app.get("/api/files/<course_code>")
+    def list_files(course_code):
+        try:
+            results, _ = client.scroll(
+                collection_name=course_code,
+                limit=1000,
+                with_payload=True,
+                with_vectors=False
+            )
+
+            files = {}
+            for r in results:
+                upload_id = r.payload.get("upload_id")
+                title = r.payload.get("doc_title")
+
+                if upload_id and upload_id not in files:
+                    files[upload_id] = {
+                        "id": upload_id,
+                        "name": title
+                    }
+
+            return jsonify(list(files.values()))
+
+        except Exception as e:
+            print("Error fetching files:", e)
+            return jsonify({"error": "Failed to fetch files"}), 500
+        
 
     @app.delete("/api/files/<file_id>")
     def delete_file(file_id):
-        registry = _load_registry()
-        record = next((r for r in registry if r["id"] == file_id), None)
-        if not record:
-            return jsonify({"error": "File not found"}), 404
+        course_code = request.args.get("course_code")
 
-        course_code = record["course_code"]
-        print("Deleting upload_id:", file_id, "from collection:", course_code)
+        if not course_code:
+            return jsonify({"error": "Missing course_code"}), 400
 
-        try:
-            from qdrant_client.models import Filter, FieldCondition, MatchValue
-            client.delete(
-                collection_name=course_code,
-                points_selector=Filter(
-                    must=[
-                        FieldCondition(
-                            key="upload_id",
-                            match=MatchValue(value=file_id)
-                        )
-                    ]
-                )
+        from qdrant_client.models import Filter, FieldCondition, MatchValue
+
+        client.delete(
+            collection_name=course_code,
+            points_selector=Filter(
+                must=[
+                    FieldCondition(
+                        key="upload_id",
+                        match=MatchValue(value=file_id)
+                    )
+                ]
             )
-            print("Deleted chunks from Qdrant successfully")
-        except Exception as e:
-            print("Qdrant delete error:", repr(e))
+        )
 
-        _save_registry([r for r in registry if r["id"] != file_id])
         return jsonify({"ok": True})
 
 
@@ -242,7 +238,7 @@ def create_app():
             try:
                 client.create_payload_index(
                     collection_name=course_code,
-                    field_name="course_code",
+                    field_name="upload_id",
                     field_schema="keyword"
                 )
             except Exception:
