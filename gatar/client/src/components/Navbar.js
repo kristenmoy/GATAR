@@ -1,23 +1,29 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { SignOutButton } from '@clerk/clerk-react';
+import { SignOutButton, SignedIn } from '@clerk/clerk-react';
 
 export default function Navbar() {
+  const [open, setOpen] = useState(false);
   return (
     <>
       <header className="header-box">
           <h1>GATAR</h1>
-        {/* <nav className="nav-links">
-          <Link to="/test">Test</Link>  
-          <Link to="/profLogin">Prof Login</Link>
-          <Link to="/studentLogin">Student Login</Link>
-          <Link to="/profUpload">Upload</Link>
-          <Link to="/profDashboard">Prof Dashboard</Link>
-        </nav> */}
-        <SignOutButton>
-          <button className="logout-button">Logout</button>
-        </SignOutButton>
-        <Link to="/about" className="about-button">About Us</Link>
+          <div className="hamburger" onClick={() => setOpen(!open)}>
+            <div></div>
+            <div></div>
+            <div></div>
+          </div>
+          {open && (
+            <div className="dropdown-menu">
+              <Link to="/about" onClick={() => setOpen(false)}>About</Link>
+
+              <SignedIn>
+                <SignOutButton>
+                  <button onClick={() => setOpen(false)}>Logout</button>
+                </SignOutButton>
+              </SignedIn>
+            </div>
+          )}
       </header>
     </>
   );

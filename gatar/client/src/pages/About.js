@@ -5,7 +5,8 @@ function About() {
     <div className="gator-background">
       <div className="center-screen">
         <div className="center-wrapper">
-          <h2>About GATAR</h2>
+          <h1>GATAR</h1>
+          <h2>Generative Assistant for Teaching and Resources</h2>
           <p>
             Our project involves building an interface for instructors to upload their 
             course materials such as lectures, slides, and notes, to automatically generate 

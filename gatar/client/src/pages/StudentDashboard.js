@@ -28,8 +28,8 @@ import { useAuth, useUser } from '@clerk/clerk-react';
 function PersonIcon() {
   return (
     <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" className="person-icon">
-      <circle cx="32" cy="22" r="12" fill="#c0c0c0" />
-      <ellipse cx="32" cy="52" rx="20" ry="12" fill="#c0c0c0" />
+      <circle cx="32" cy="22" r="12" fill="white" />
+      <ellipse cx="32" cy="52" rx="20" ry="12" fill="white" />
     </svg>
   );
 }
@@ -108,7 +108,7 @@ function StudentDashboard() {
 
   // chatbot elements BD4F00
   const defaultSettings = {
-    general: {embedded:true, primaryColor:"#BD4F00", secondaryColor:"#BD4F00"},
+    general: {embedded:true, primaryColor:"#9C9CC8", secondaryColor:"#9C9CC8"},
     header: { title: selectedClass?.code || "Select a class" }
   };
   const MAX_HISTORY = 10;
