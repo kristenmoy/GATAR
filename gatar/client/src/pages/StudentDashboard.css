@@ -19,7 +19,6 @@
   width: calc(80vw - 150px) !important;
   height: 80.5vh !important;
   border-top-left-radius:0 !important;
-  background-color: #150FA9;
 }
 
 .class-sidebar {
@@ -40,7 +39,7 @@
   flex-direction: column;
   align-items: center;
   gap: 4px;
-  background: #BD4F00;
+  background: #9C9CC8;
   border: none;
   border-radius: 12px;
   padding: 8px 6px 6px;
@@ -99,7 +98,7 @@
 }
 
 .class-picker-card .brand {
-  color: #150FA9;
+  color: #373763;
   font-weight: 900;
 }
 

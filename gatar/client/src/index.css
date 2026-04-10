@@ -34,6 +34,7 @@ code {
   align-items: center;
   display: flex;
   justify-content: space-between;
+  padding: 0 20px;
 }
 
 .header-box h1
@@ -42,34 +43,26 @@ code {
   margin-left: 20px;
   font-size: 50px;
   font-weight: 900;
-  color: #150FA9;
+  color: #373763;
 }
 
 .about-button
 {
   margin: 0;
   margin-right: 20px;
-  background: #BD4F00;
+  background: #9C9CC8;
   color: white;
   border-radius: 8px;
   padding: 12px 40px;
   cursor: pointer;
   text-decoration: none;
   font-size: 16px;
+  transition: background 0.2s, transform 0.15s;
 }
 
-.logout-button
+.about-button:hover
 {
-  margin: 0;
-  margin-right: 10px;
-  margin-left: 10px;
-  background: #150FA9;
-  color: white;
-  border-radius: 8px;
-  padding: 12px 40px;
-  cursor: pointer;
-  border: none;
-  font-size: 16px;
+  background:#373763;
 }
 
 .center-screen 
@@ -84,7 +77,7 @@ code {
 .gator-background
 {
   overflow: hidden;
-  background-image: url('../public/darkerThanGata.png');
+  background-image: url('../public/blueGatas.png');
   background-color:#150FA9;
   background-repeat: no-repeat;
   background-size: cover;
@@ -94,39 +87,40 @@ code {
 
 .center-wrapper 
 {
-  margin-bottom: 30px;
+  margin-bottom: 70px;
   background: white;
-  padding: 40px 60px;
   border-radius: 8px;
+  padding: 30px 50px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   max-width: 500px;  /* Maximum width on large screens */
   width: 90%;        /* Takes 90% of screen width on small screens */
 }
 
 .center-wrapper h1{
-  color: #150FA9;
+  color: #373763;
   margin-top: 0;
-  margin-bottom: 20px;
-  font-size: 32px;  
+  font-size: 30px;  
+  font-weight: 800;
 }
 
 .center-wrapper h2 
 {
-  color: #150FA9;
+  color: #373763;
   margin-top: 0;
-  margin-bottom: 30px;
-  font-size: 28px;
+  font-size: 24px;
+  font-weight: 600;
 }
 
 .center-wrapper h3
 {
-  color: #171717;
+  color: #373763;
   font-size: 24px;
 }
 
 .center-wrapper p
 {
   color: #171717;
+  font-size: 15px;
 }
 
 .center-wrapper input[type="file"] 
@@ -140,7 +134,7 @@ code {
 
 .center-wrapper button
 {
-  background: #BD4F00;
+  background: #9C9CC8;
   color: white;
   padding: 12px 40px;
   border: none;
@@ -150,11 +144,12 @@ code {
   cursor: pointer;
   margin-top: 20px;
   width: 100%;
+  transition: background 0.2s;
 }
 
 .center-wrapper button:hover 
 {
-  background: #A13515;
+  background: #545496;
 }
 
 .center-wrapper li
@@ -179,8 +174,7 @@ code {
 
 .custom-file-button:hover 
 {
-  background: #f0f0f0;
-  border-color: #BD4F00;
+  background: #9C9CC8;
 }
 
 .nav-links {
@@ -206,9 +200,9 @@ code {
   bottom: 20px;
   right: 20px;
   background: white;
-  color: #150fa9;
+  color: #373763;
   border: 1px solid #150fa9;
-  border-radius: 4px;
+  border-radius: 8px;
   padding: 5px 5px;
   cursor: pointer;
   transition: all 0.3s ease;
@@ -233,7 +227,7 @@ code {
 }
 
 .switch-login-button {
-  background: #BD4F00;
+  background: #9C9CC8;
   color: white;
   padding: 12px 40px;
   border: none;
@@ -283,7 +277,7 @@ code {
 }
 
 .side-wrapper button {
-  background: #BD4F00;
+  background: #9C9CC8;
   color: white;
   padding: 20px 10px;
   border: none;
@@ -300,4 +294,56 @@ code {
   margin-top: 0;
   margin-bottom: 0;
   font-size: 28px;
+}
+
+.menu-container {
+  position: relative;
+  margin-right: 20px;
+}
+
+.hamburger {
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.hamburger div {
+  width: 25px;
+  height: 3px;
+  background: #373763;
+}
+
+.dropdown-menu {
+  position: absolute;
+  right: 0;
+  top: 40px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  display: flex;
+  flex-direction: column;
+  padding: 10px;
+  min-width: 150px;
+  z-index: 1000;
+}
+
+.dropdown-menu a,
+.dropdown-menu button {
+  padding: 10px;
+  text-align: left;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #373763;
+  font-weight: 600;
+  text-decoration: none;
+  font-size: 16px;
+  transition: background 0.2s;
+}
+
+.dropdown-menu a:hover,
+.dropdown-menu button:hover {
+  background: #f0f0f0;
+  border-radius: 8px;
 }
