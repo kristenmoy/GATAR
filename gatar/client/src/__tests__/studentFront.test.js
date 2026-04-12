@@ -68,7 +68,7 @@ describe('StudentDashboard', () => {
     // Click on the first class tile
     const CSEtile = await screen.findByTestId('class-tile-CSE101');
     fireEvent.click(CSEtile);
-    screen.debug();
+    //screen.debug();
 
     // Wait for the dashboard to render (class picker should disappear)
     await waitFor(() => {
