@@ -35,7 +35,7 @@
   flex-direction: column;
   align-items: center;
   gap: 4px;
-  background: #BD4F00;
+  background: #9C9CC8;
   border: none;
   border-radius: 12px;
   padding: 8px 6px 6px;
@@ -46,18 +46,19 @@
 }
 
 .sidebar-class-btn:hover {
-  background: #a33d00;
+  background: #545496;
   transform: scale(1.05);
 }
 
 .sidebar-class-btn.active {
-  background: #8c3200;
-  outline: 3px solid #606063;
+  background: #545496;
+  outline: 3px solid #3d3d3d;
 }
 
 .sidebar-class-btn .person-icon {
   width: 60px;
   height: 60px;
+  color: #3d3d3d;
 }
 
 .sidebar-code {
@@ -94,7 +95,7 @@
 }
 
 .class-picker-card .brand {
-  color: #150FA9;
+  color: #373763;
   font-weight: 900;
 }
 
@@ -116,7 +117,7 @@
   flex-direction: column;
   align-items: center;
   gap: 6px;
-  background: #BD4F00;
+  background: #9C9CC8;
   border: none;
   border-radius: 14px;
   padding: 14px 8px 10px;
@@ -125,13 +126,14 @@
 }
 
 .class-tile:hover {
-  background: #a33d00;
+  background: #545496;
   transform: scale(1.05);
 }
 
 .class-tile .person-icon {
   width: 52px;
   height: 52px;
+  color: white;
 }
 
 .tile-code {
@@ -143,7 +145,7 @@
 }
 
 .add-class-btn {
-  background: #150FA9;
+  background: #373763;
   color: white;
   border: none;
   border-radius: 8px;
@@ -155,19 +157,19 @@
 }
 
 .add-class-btn:hover {
-  background: #0d0b80;
+  background: #242445;
 }
 
 .class-actions-panel {
   flex: 1;
   display: flex;
   flex-direction: column;
-  background: #150FA9;
+  background: white;
   overflow: hidden;
 }
 
 .actions-header {
-  background: #BD4F00;
+  background: #9C9CC8;
   display: flex;
   align-items: center;
   gap: 14px;
@@ -177,6 +179,7 @@
 .actions-header .person-icon {
   width: 44px;
   height: 44px;
+  color: #3d3d3d;
 }
 
 .actions-course-code {
@@ -195,7 +198,7 @@
 }
 
 .action-btn {
-  background: #BD4F00;
+  background: #9C9CC8;
   color: white;
   border: none;
   border-radius: 10px;
@@ -209,7 +212,7 @@
 }
 
 .action-btn:hover {
-  background: #a33d00;
+  background: #bdbcbb;
   transform: scale(1.03);
 }
 
@@ -263,10 +266,15 @@
   padding: 10px 28px;
   font-size: 15px;
   cursor: pointer;
+  transition: background 0.2s;
+}
+
+.modal-cancel:hover{
+  background: #c0bfbf;
 }
 
 .modal-confirm {
-  background: #BD4F00;
+  background: #9C9CC8;
   color: white;
   border: none;
   border-radius: 8px;
@@ -278,5 +286,5 @@
 }
 
 .modal-confirm:hover {
-  background: #a33d00;
+  background: #373763;
 }
