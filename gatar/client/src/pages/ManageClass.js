@@ -26,6 +26,12 @@ export default function ManageClassModal({ onClose, classCode, embedded}) {
   }, [classCode]);
 
   async function handleRemove(fileId) {
+    const confirmDelete = window.confirm(
+    "Are you sure you want to delete this file?"
+  );
+
+  if (!confirmDelete) return;
+    
     setRemoving(fileId);
 
     try {
@@ -60,11 +66,11 @@ export default function ManageClassModal({ onClose, classCode, embedded}) {
         </div>
 
         <button
-          className="manage-remove-btn"
+          className="manage-remove-btn trash-btn"
           onClick={() => handleRemove(file.id)}
           disabled={removing === file.id}
         >
-          Remove
+          🗑
         </button>
 
       </div>

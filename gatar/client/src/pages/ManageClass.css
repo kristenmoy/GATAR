@@ -47,20 +47,18 @@
   margin-top: 5px;
 }
 
-.manage-remove-btn {
-  background: #ff4d4f;
-  border: none;
+.manage-remove-btn.trash-btn {
+  background: #e74c3c;
   color: white;
-  padding: 6px 12px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 12px;
-  transition: 0.2s ease;
-  margin-left: 50px;
+  font-size: 18px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  transition: 0.2s;
 }
 
-.manage-remove-btn:hover {
+.manage-remove-btn.trash-btn:hover {
   background: #d9363e;
+  transform: scale(1.1);
 }
 
 .manage-empty {

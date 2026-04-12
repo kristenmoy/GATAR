@@ -312,6 +312,12 @@
   transition: background 0.2s, transform 0.1s;
 }
 
+.upload-btn:disabled,
+.modal-confirm:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 .upload-btn:hover {
   background: #2a2a55;
   transform: scale(1.05);
@@ -331,4 +337,28 @@
   color: #150FA9;
   font-size: 24px;
   margin-bottom: 16px;
+}
+
+.sidebar-class-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex: 1;
+  overflow-y: auto;
+}
+
+.sidebar-add-btn {
+  margin: 12px;
+  padding: 10px;
+  border-radius: 10px;
+  border: none;
+  background: #373763;
+  color: white;
+  font-weight: 700;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.sidebar-add-btn:hover {
+  background: #2a2a55;
 }
