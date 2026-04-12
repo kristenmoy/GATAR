@@ -13,7 +13,8 @@ export default function ManageClassModal({ onClose, classCode }) {
         const res = await fetch(`http://localhost:5000/api/files/${classCode}`);
         if (res.ok) {
           const data = await res.json();
-          setFiles(data);
+          const cleanName = name => name.split("_").pop();
+          setFiles(data.sort((a, b) => cleanName(a.name).localeCompare(cleanName(b.name), undefined, { sensitivity: 'base' })));
         }
       } catch (err) {
         console.error(err);

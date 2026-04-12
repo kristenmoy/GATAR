@@ -8,8 +8,8 @@ import ManageClassModal from "./ManageClass";
 function PersonIcon() {
   return (
     <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" className="person-icon">
-      <circle cx="32" cy="22" r="12" fill="#c0c0c0" />
-      <ellipse cx="32" cy="52" rx="20" ry="12" fill="#c0c0c0" />
+      <circle cx="32" cy="22" r="12" fill="white" />
+      <ellipse cx="32" cy="52" rx="20" ry="12" fill="white" />
     </svg>
   );
 }

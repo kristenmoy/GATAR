@@ -15,7 +15,7 @@ For professors, the platform would:
 We believe this tool could improve student understanding while giving instructors more insight into where students struggle, ultimately supporting more efficient teaching and learning.
 
 
-## Installations
+## Installations - Windows
 ```shell
 python -m pip install --upgrade pip
 pip install flask flask-cors
@@ -26,9 +26,7 @@ pip install pypdf spacy tiktoken openai sentence_transformers qdrant-client
 python -m spacy download en_core_web_sm
 ```
 ```shell
-npm install react-chatbotify
-npm install react-router-dom
-npm install @clerk/clerk-react
+npm install
 ```
 #### Set API key
 ```shell
@@ -37,6 +35,29 @@ $env:OPENAI_API_KEY="insert API key here"
 #### Test if API key is correctly set (optional)
 ```shell
 echo $env:OPENAI_API_KEY
+```
+## Installations - Mac
+```shell
+python3 -m venv myenv
+source myenv/bin/activate
+python -m pip install --upgrade pip
+pip install flask flask-cors
+pip install qdrant-client flask-cors
+pip install sentence-transformers
+pip install python-dotenv
+pip install pypdf spacy tiktoken openai sentence_transformers qdrant-client
+python -m spacy download en_core_web_sm
+```
+```shell
+npm install
+```
+#### Set API key
+```shell
+export OPENAI_API_KEY="insert API key here"
+```
+#### Test if API key is correctly set (optional)
+```shell
+echo $OPENAI_API_KEY
 ```
 
 ## HOW-TO Run the Application
