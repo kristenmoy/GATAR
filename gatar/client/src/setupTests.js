@@ -3,6 +3,7 @@
 // expect(element).toHaveTextContent(/react/i)
 // learn more: https://github.com/testing-library/jest-dom
 import '@testing-library/jest-dom';
+import React from 'react';
 
 // studentFront.test.js - tests for StudentDashboard.js
 import { TextEncoder } from 'util';
@@ -16,9 +17,16 @@ jest.mock('react-router', () => ({
     ...jest.requireActual('react-router'),
     useNavigate: () => mockUsedNavigate,
 }));
-jest.mock('react-chatbotify', () => ({
-  ChatBot: () => <div data-testid="chatbot">ChatBot Mock</div>,
-  ChatBotProvider: ({ children }) => <div data-testid="chatbot-provider">{children}</div>,
-  useSettings: () => ({ settings: {}, updateSettings: jest.fn() }),
-  useFlow: () => ({ restartFlow: jest.fn(), hasFlowStarted: false }),
-}));
+const mockChatbot = jest.fn();
+jest.mock('react-chatbotify', () => {
+    return {
+        ...jest.requireActual('react-chatbotify'),
+            ChatBot: (props) => {
+                mockChatbot(props);
+                return <div data-testid="chatbot">ChatBot Mock</div>;
+            },
+            ChatBotProvider: ({ children }) => <div data-testid="chatbot-provider">{children}</div>,
+            useSettings: () => ({ settings: {}, updateSettings: jest.fn() }),
+            useFlow: () => ({ restartFlow: jest.fn(), hasFlowStarted: false }), 
+    };
+});

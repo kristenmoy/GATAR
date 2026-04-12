@@ -1,6 +1,6 @@
 import React, { useState, useEffect} from 'react';
 import { useNavigate } from 'react-router';
-import ChatBot, { ChatBotProvider, useSettings, useFlow } from "react-chatbotify";
+import { ChatBot, ChatBotProvider, useSettings, useFlow } from "react-chatbotify";
 import { useAuth, useUser } from '@clerk/clerk-react';
 import './StudentDashboard.css';
 
@@ -13,17 +13,7 @@ import { useNavigate } from 'react-router-dom';
 import ChatBot, { ChatBotProvider } from "react-chatbotify";
 import { useState, useEffect } from 'react';
 import { useAuth, useUser } from '@clerk/clerk-react';
-
-/* Current issues:
-1. figure out way to make the course change palpable
-   - restart chatbot UI, updateSettings to correct chatbot?
-   - switch chatbot/page entirely?
-2. link chatbot to UI [PRIORITY]
-   - talk to backend about that
-3. access student courses to reflect that in chatbot options
-   - wireframe: showed options already grabbed from student info + add a class opt.
 */
-
 
 function PersonIcon() {
   return (
@@ -44,9 +34,9 @@ function cleanFileNames(text) {
 function StudentDashboard() {
   const { isSignedIn, isLoaded } = useAuth();
   const navigate = useNavigate();
-  const {restartFlow, hasFlowStarted} = useFlow();
+  //const {restartFlow, hasFlowStarted} = useFlow();
   const [chatKey, setChatKey] = useState(0);
-  const {settings, updateSettings} = useSettings();
+  //const {settings, updateSettings} = useSettings();
   const [classes, setClasses] = useState([]);
   const [selectedClass, setSelectedClass] = useState("");
   const [showAddModal, setShowAddModal] = useState(false);
@@ -57,7 +47,6 @@ function StudentDashboard() {
    const [messages, setMessages] = useState([]);
 
   // vars
- //const [course, changeCourse] = useState(""); // change to student default
   const [course, changeCourse] = useState("CIS4904"); // change to student default
 
   useEffect(() => {
@@ -106,12 +95,6 @@ function StudentDashboard() {
     setNewCode('');
     setShowAddModal(false);
   }
-  // function handleAction(action) {
-  //   if (action === 'Upload')
-  //     {
-  //         setShowUploadModal(true);
-  //     }
-  // }
 
   // chatbot elements BD4F00
   const defaultSettings = {
@@ -121,7 +104,7 @@ function StudentDashboard() {
   const MAX_HISTORY = 10;
   const flow = {
     start: {
-        message: `Welcome to ${selectedClass.code}. How can I help you today?`,
+        message: () => { `Welcome to ${selectedClass.code}. How can I help you today?`; },
         path: "chat"
     },
     chat: {
@@ -159,10 +142,6 @@ function StudentDashboard() {
       },
       path: "chat"
     }
-    // end_loop: {
-    //     message: "Connect LLM to this later.",
-    //     path: "end_loop"
-    // }
   }
 
   return (
@@ -208,38 +187,7 @@ function StudentDashboard() {
           <ChatBotProvider>
             <ChatBot settings={defaultSettings} flow={flow} key={chatKey}/>
           </ChatBotProvider>
-{/* 
-          <div className="class-actions-panel">
-            <div className="actions-header">
-              <PersonIcon />
-              <span className="actions-course-code">{selectedClass.code}</span>
-            </div>
-            <div className="actions-grid">
-              <button className="action-btn" onClick={() => handleAction('Upload')}>Upload</button>
-              <button className="action-btn" onClick={() => handleAction('Edit')}>Edit</button>
-              <button className="action-btn" onClick={() => handleAction('Manage Class')}>Manage<br />Class</button>
-              <button className="action-btn" onClick={() => handleAction('Publish')}>Publish</button>
-            </div>
-          </div> */}
-
         </div>
-        // <div className="center-screen">
-        //   <div className="left-side">
-        //     <div className="side-wrapper">
-        //       <h3>Class list:</h3>
-        //       <button type="button"
-        //       onClick={() => handleClick("mewo")}>mewo</button>
-        //       <button>test</button>
-        //       <button>class1</button>
-        //       <button>class2</button>
-        //     </div>
-        //   </div>
-        //   <div className="right-side">
-        //     <ChatBotProvider>
-        //       <ChatBot settings={settings} flow={flow}/>
-        //     </ChatBotProvider>
-        //   </div>
-        // </div>
       )} 
     </div>
   );

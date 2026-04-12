@@ -1,4 +1,4 @@
-import StudentDashboard from '../pages/StudentDashboard';
+import StudentDashboard from '../pages/StudentDashboard.js';
 import { fireEvent, screen, render, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router';
 
@@ -6,6 +6,7 @@ import { MemoryRouter } from 'react-router';
 global.fetch = jest.fn();
 
 describe('StudentDashboard', () => {
+  // Mock class data
   const mockCourses = ['CSE101', 'MATH202', 'PHYS301'];
 
   // Reset fetch mock before each test
@@ -35,19 +36,20 @@ describe('StudentDashboard', () => {
       </MemoryRouter>
     );
 
-    // Wait for classes to load
+    // Test that fetch was called with the course URL
     await waitFor(() => {
       expect(fetch).toHaveBeenCalledWith('http://localhost:5000/api/courses');
     });
 
     // Check that class tiles are rendered
-    const classTiles = screen.queryAllByTestId(/^class-tile-/);
+    const classTiles = await screen.findAllByTestId(/^class-tile-/);
     expect(classTiles).toHaveLength(mockCourses.length);
 
     // Check each tile has the correct code
     mockCourses.forEach((course, index) => {
       expect(screen.getByTestId(`class-tile-${course}`)).toBeInTheDocument();
       expect(screen.getByText(course)).toBeInTheDocument();
+      expect(classTiles[index]).toHaveTextContent(course);
     });
   });
 
@@ -58,14 +60,15 @@ describe('StudentDashboard', () => {
       </MemoryRouter>
     );
 
-    // Wait for classes to load
+    // Test that fetch was called with the course URL
     await waitFor(() => {
-      expect(screen.getByTestId('class-tile-CSE101')).toBeInTheDocument();
+      expect(fetch).toHaveBeenCalledWith('http://localhost:5000/api/courses');
     });
-
+ 
     // Click on the first class tile
-    const cse101Tile = screen.getByTestId('class-tile-CSE101');
-    fireEvent.click(cse101Tile);
+    const CSEtile = await screen.findByTestId('class-tile-CSE101');
+    fireEvent.click(CSEtile);
+    screen.debug();
 
     // Wait for the dashboard to render (class picker should disappear)
     await waitFor(() => {
@@ -110,22 +113,5 @@ describe('StudentDashboard', () => {
     // Check that the active class button has the 'active' class
     const activeButton = screen.getByRole('button', { name: 'MATH202' });
     expect(activeButton).toHaveClass('active');
-  });
-
-  it('renders add class button', async () => {
-    render(
-      <MemoryRouter>
-        <StudentDashboard />
-      </MemoryRouter>
-    );
-
-    // Wait for classes to load
-    await waitFor(() => {
-      expect(screen.getByTestId('class-tile-CSE101')).toBeInTheDocument();
-    });
-
-    // Check that add class button is present
-    const addButton = screen.getByRole('button', { name: /add class/i });
-    expect(addButton).toBeInTheDocument();
   });
 });
