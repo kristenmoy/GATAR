@@ -1,5 +1,5 @@
 import React, { useState, useEffect} from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 import ChatBot, { ChatBotProvider, useSettings, useFlow } from "react-chatbotify";
 import { useAuth, useUser } from '@clerk/clerk-react';
 import './StudentDashboard.css';
@@ -176,7 +176,7 @@ function StudentDashboard() {
           
               <div className="class-grid">
                 {classes.map(cls => (
-                    <button key={cls.id} className="class-tile" onClick={() => setSelectedClass(cls)}>
+                    <button key={cls.id} className="class-tile" onClick={() => setSelectedClass(cls)} data-testid={`class-tile-${cls.code}`}>
                       <PersonIcon />
                       <span className="tile-code">{cls.code}</span>
                     </button>
