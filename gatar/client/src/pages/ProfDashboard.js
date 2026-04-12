@@ -50,6 +50,16 @@ export default function ProfDashboard() {
     }
   }, [isSignedIn, isLoaded, navigate]);
 
+  useEffect(() => {
+    if (uploading) {
+      document.body.classList.add("uploading");
+    } else {
+      document.body.classList.remove("uploading");
+    }
+
+    return () => document.body.classList.remove("uploading");
+  }, [uploading]);
+
   if (role && role !== 'professor') {
     navigate('/');
   }
@@ -177,12 +187,12 @@ export default function ProfDashboard() {
               </div>
 
               <button
-                className="upload-btn"
-                onClick={() => setShowUploadModal(true)}
-                disabled={uploading}
-              >
-                {uploading ? "Uploading..." : "Upload"}
-              </button>
+              className="upload-btn"
+              onClick={() => setShowUploadModal(true)}
+              disabled={uploading}
+            >
+              {uploading ? "Uploading..." : "Upload"}
+            </button>
             </div>
 
             <ManageClassModal
@@ -216,6 +226,7 @@ export default function ProfDashboard() {
             classCode={selectedClass.code}
             onClose={function() { setShowUploadModal(false); }}
             setUploading={setUploading}
+            uploading={uploading}
         />
         )}
       {/* {showManageModal && React.createElement(ManageClassModal, {

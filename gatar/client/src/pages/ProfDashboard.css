@@ -362,3 +362,7 @@
 .sidebar-add-btn:hover {
   background: #2a2a55;
 }
+
+body.uploading {
+  cursor: wait !important;
+}
