@@ -114,8 +114,8 @@ def create_app():
                     id=str(uuid.uuid4()),
                     vector=vector,
                     payload={
-                        "text": chunk["text_for_embedding"],
-                        "doc_title": metadata.get("title") or file.filename,
+                        "text": chunk["chunk_text"],
+                        "doc_title": os.path.splitext(file.filename)[0],
                         "section_header": metadata.get("section_header"),
                         "page": metadata.get("pages"),
                         "course_code": course_code,
@@ -313,7 +313,7 @@ def create_app():
             return jsonify({"error": "Missing query"}), 400
 
 
-        qvec = embed_with_e5([q])[0]
+        qvec = embed_with_e5([f"query: {q}"])[0]
         hits = client.search(collection_name=course_code, query_vector=qvec, limit=limit)
 
 
@@ -342,7 +342,7 @@ def create_app():
             return jsonify({"error": "Missing course_code"}), 400
 
         # 1. Embed query
-        qvec = embed_with_e5([q])[0]
+        qvec = embed_with_e5([f"query: {q}"])[0]
         print("query embedded")
 
         # 2. Qdrant search
@@ -351,11 +351,12 @@ def create_app():
             query=qvec,
             limit=5
         )
+
+        # Print out points
         hits = results.points
-        # for i in hits:
-        #     print(type(i))
-        #     print(i.payload)
-        print("qdrant search completed")
+        print(f"qdrant search completed: {len(hits)} hits")
+        for h in hits:
+            print(f"  score={h.score:.4f} | doc={h.payload.get('doc_title')} | section={h.payload.get('section_header')} | text_preview={str(h.payload.get('text',''))[:80]}")
 
         # 3. Build context
         context = build_llm_context(hits)
