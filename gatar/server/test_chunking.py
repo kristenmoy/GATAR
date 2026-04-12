@@ -135,12 +135,17 @@ def merge_paragraphs_llm(paragraphs, model="gpt-oss-120b"):
         raise ValueError("No text output found in model response")
     raw = raw.strip()
 
+    def sanitize_json(s):
+        # Strip markdown code fences
+        s = re.sub(r"```json|```", "", s).strip()
+        # Replace any invalid JSON escape sequences
+        s = re.sub(r'\\(?!["\\/bfnrt]|u[0-9a-fA-F]{4})', r'\\\\', s)
+        return s
+
     try:
         return json.loads(raw)
     except json.JSONDecodeError:
-        print("LLM returned invalid JSON:")
-        cleaned_json = re.sub(r"```json|```", "", raw).strip()
-        print(raw)
+        cleaned_json = sanitize_json(raw)
         return json.loads(cleaned_json)
 
 
@@ -209,6 +214,7 @@ def pdf_to_embedded_chunks(pdf_path, llm_model = "gpt-oss-120b", max_tokens = 35
         pg_range = f"{min(pg_numbers)}-{max(pg_numbers)}"
         embedding_chunks.append({
             "text_for_embedding" : format_for_e5(chunk["chunk_text"], doc_title=doc_title, section_header=chunk["chunk_title"], page_range=pg_range),
+            "chunk_text": chunk["chunk_text"],
             "metadata": {
                 "title": doc_title,
                 "section_header": chunk["chunk_title"],

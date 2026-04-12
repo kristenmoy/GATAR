@@ -182,7 +182,6 @@ function StudentDashboard() {
                     </button>
                   ))}
               </div>
-              <button className="add-class-btn" onClick={() => setShowAddModal(true)}>Add class</button>
           </div>
         </div>
       ) : (
