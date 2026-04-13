@@ -334,16 +334,18 @@ def create_app():
         messages = data.get("messages", [])
         if not messages:
             return jsonify({"error": "Missing message"}), 400
-        
+       
         q = messages[-1]["content"]
         print("question is: ", q)
         course_code = data.get("course_code")
         if not course_code:
             return jsonify({"error": "Missing course_code"}), 400
 
+
         # 1. Embed query
         qvec = embed_with_e5([f"query: {q}"])[0]
         print("query embedded")
+
 
         # 2. Qdrant search
         results = client.query_points(
@@ -352,11 +354,13 @@ def create_app():
             limit=5
         )
 
+
         # Print out points
         hits = results.points
         print(f"qdrant search completed: {len(hits)} hits")
         for h in hits:
             print(f"  score={h.score:.4f} | doc={h.payload.get('doc_title')} | section={h.payload.get('section_header')} | text_preview={str(h.payload.get('text',''))[:80]}")
+
 
         # 3. Build context
         context = build_llm_context(hits)
@@ -365,35 +369,71 @@ def create_app():
         )
         print("finished building context")
 
+
         # 4. Prompt design
         prompt = f"""
         You are a helpful tutor.
+       
+        ABSOLUTE RULES (TOP PRIORITY):
+        - Use MUST use ONLY the provided Context.
+        - Do NOT use prior knowledge, training data, or outside information.
+        - If you do not have enough context to answer, say "I do not have enough context to answer this question."
+        - Do NOT guess, infer missing facts, or complete partially missing problems.
 
-        - Use ONLY the context below to answer the question.
-        - If you do not have enough context to answer, say "I do not have enough context to answer this question"
+
+        TUTOR BEHAVIOR:
+        - You are a tutor not an answer engine.
+        - Prioritize explaining how to solve a problem step-by-step.
+        - Only give final answers if they are explicitly present in the Context.
+        - If this is a homework question, guide the student through the method.
+
+
+        HOMEWORK HANDLING:
+        - If the question references something like "HW6 Problem 1":
+            - Match the assignment using doc_title and section_header.
+            - Prefer exact section_header matches (e.g.,"Problem 1").
+            - If multiple matches exist, choose the most relevant.
+            - If unclear, say so.
+       
+        CONTEXT USAGE RULES:
+        - Every statement must come from the Context.
+        - Do not combine Context chunks to invent new facts.
+
 
         Conversation history:
         {chat_history}
 
+
         Context:
         {context}
+
 
         Latest question:
         {q}
 
-        Answer the latest user question clearly and concisely.
 
-        
-        Give a citation for all of the context you used as a new line for each part in the form of Citation: Title: title, Section Header: section header, Page numbers: page numbers using the metadata from the {context}
-        Format the entire answer including citations in HTML, using <strong> for emphasis and <br> for new lines.
-        Include clear titles based on the {context} provided, and do not include any words related to HTML concepts unless specifically mentioned in the {context}. Specifically, do not include a title listed HTML Answer in any form unless the {context} explicitly includes a section header with the title HTML Answer. If the {context} does not include a section header with the title HTML Answer, do not include any titles in your answer.
+        Answer the latest user question clearly, concisely, and step-by-step.
+
+
+        CITATIONS:
+        After each paragraph, include a citation in this format, generated from the Context metadata:
+        (Title: ...
+        Section Header: ...
+        Page Number(s): ...)
+
+
+        FORMATTING RULES:
+        - Format the entire answer including citations in HTML, using <strong> for emphasis and <br> for new lines.
+        - Do not include any words related to HTML concepts unless specifically mentioned in the Context.
         """
+
 
         response = llm_client.responses.create(
             model="gpt-oss-120b",
             input=prompt,
             temperature=0.2
         )
+
 
         answer = None
         for item in response.output:
@@ -403,6 +443,7 @@ def create_app():
                         answer = content.text
         if answer is None:
             raise ValueError("No answer text output from model")
+
 
         print("llm outputted answer")
         return jsonify({

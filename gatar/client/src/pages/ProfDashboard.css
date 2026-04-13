@@ -2,8 +2,9 @@
   display: flex;
   height: calc(100vh - 60px);
   overflow: hidden;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
+  padding-top: 40px;
 }
 
 .dashboard-container {
@@ -15,6 +16,7 @@
   width: 50vw;
   height: 75vh;
   max-width: 95vw;
+  align-items: flex-start;
 }
 
 .class-sidebar {
@@ -183,7 +185,7 @@
 }
 
 .actions-course-code {
-  color: white;
+  color: #373763;
   font-size: 40px;
   font-weight: 900;
   letter-spacing: 0.5px;
@@ -217,7 +219,7 @@
 }
 
 .modal-backdrop {
-  position: fixed;
+  position:fixed;
   inset: 0;
   background: rgba(0,0,0,0.5);
   display: flex;
@@ -228,17 +230,12 @@
 
 .modal-card {
   background: white;
+  color: #9C9CC8;
   border-radius: 12px;
   padding: 32px 40px;
   min-width: 300px;
   box-shadow: 0 8px 32px rgba(0,0,0,0.3);
   text-align: center;
-}
-
-.modal-card h3 {
-  color: #150FA9;
-  margin: 0 0 20px;
-  font-size: 22px;
 }
 
 .modal-card input {
@@ -269,7 +266,7 @@
   transition: background 0.2s;
 }
 
-.modal-cancel:hover{
+.modal-cancel:hover {
   background: #c0bfbf;
 }
 
@@ -287,4 +284,85 @@
 
 .modal-confirm:hover {
   background: #373763;
+}
+
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding: 16px 24px;
+  margin-bottom: 20px;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.upload-btn {
+  background: #373763;
+  color: white;
+  padding: 10px 10px;
+  border-radius: 10px;
+  /* font-weight: 600;
+  border: none; */
+  cursor: pointer;
+  transition: background 0.2s, transform 0.1s;
+}
+
+.upload-btn:disabled,
+.modal-confirm:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.upload-btn:hover {
+  background: #2a2a55;
+  transform: scale(1.05);
+}
+
+.class-content-panel {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  padding: 30px 40px;
+  box-sizing: border-box;
+  height: 100%;
+  min-height: 0;
+}
+
+.manage-class-content h3 {
+  color: #150FA9;
+  font-size: 24px;
+  margin-bottom: 16px;
+}
+
+.sidebar-class-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex: 1;
+  overflow-y: auto;
+}
+
+.sidebar-add-btn {
+  margin: 12px;
+  padding: 10px;
+  border-radius: 10px;
+  border: none;
+  background: #373763;
+  color: white;
+  font-weight: 700;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.sidebar-add-btn:hover {
+  background: #2a2a55;
+}
+
+body.uploading {
+  cursor: wait !important;
 }
