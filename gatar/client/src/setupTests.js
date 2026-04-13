@@ -19,14 +19,17 @@ jest.mock('react-router', () => ({
 }));
 const mockChatbot = jest.fn();
 jest.mock('react-chatbotify', () => {
-    return {
-        ...jest.requireActual('react-chatbotify'),
-            ChatBot: (props) => {
-                mockChatbot(props);
-                return <div data-testid="chatbot">ChatBot Mock</div>;
-            },
-            ChatBotProvider: ({ children }) => <div data-testid="chatbot-provider">{children}</div>,
-            useSettings: () => ({ settings: {}, updateSettings: jest.fn() }),
-            useFlow: () => ({ restartFlow: jest.fn(), hasFlowStarted: false }), 
-    };
+  const actual = jest.requireActual('react-chatbotify');
+  const ChatBotMock = (props) => {
+    mockChatbot(props);
+    return <div data-testid="chatbot">ChatBot Mock</div>;
+  };
+  return {
+    ...actual,
+    default: ChatBotMock,
+    ChatBot: ChatBotMock,
+    ChatBotProvider: ({ children }) => <div data-testid="chatbot-provider">{children}</div>,
+    useSettings: () => ({ settings: {}, updateSettings: jest.fn() }),
+    useFlow: () => ({ restartFlow: jest.fn(), hasFlowStarted: false }),
+  };
 });

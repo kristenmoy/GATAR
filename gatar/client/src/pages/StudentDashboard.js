@@ -1,7 +1,7 @@
 import React, { useState, useEffect} from 'react';
 import { useNavigate } from 'react-router';
 //import ChatBot from "react-chatbotify";
-import { ChatBot, ChatBotProvider, useSettings, useFlow } from "react-chatbotify";
+import ChatBot, { ChatBotProvider, useSettings, useFlow } from "react-chatbotify";
 import { useAuth, useUser } from '@clerk/clerk-react';
 import './StudentDashboard.css';
 

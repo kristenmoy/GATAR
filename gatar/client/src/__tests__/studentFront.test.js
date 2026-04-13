@@ -8,6 +8,7 @@ global.fetch = jest.fn();
 describe('StudentDashboard', () => {
   // Mock class data
   const mockCourses = ['CSE101', 'MATH202', 'PHYS301'];
+  const failedCourses = [];
 
   // Reset fetch mock before each test
   beforeEach(() => {
@@ -51,6 +52,26 @@ describe('StudentDashboard', () => {
       expect(screen.getByText(course)).toBeInTheDocument();
       expect(classTiles[index]).toHaveTextContent(course);
     });
+  });
+
+  it('displays an error message if course API fails', async () => {
+    // Mock fetch to fail - only once
+    fetch.mockImplementationOnce(() => Promise.reject(new Error('API failure')));
+    
+    // ability to see console
+    const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+
+    render(
+      <MemoryRouter>
+        <StudentDashboard />
+      </MemoryRouter>
+    );
+
+    // Check that the error message is displayed in console
+    await waitFor(() => {
+      expect(consoleSpy).toHaveBeenCalledWith('Failed to load courses:', expect.any(Error));
+    });
+
   });
 
   it('selects a class when clicking a class tile', async () => {

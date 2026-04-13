@@ -5,7 +5,6 @@ import { MemoryRouter } from 'react-router';
 
 // Errors (fix when have time):
 // 1. Warning: An update to ProfDashboard inside a test was not wrapped in act(...).
-// 2. Backend error: undefined
 
 // Mock fetch globally
 global.fetch = jest.fn();
