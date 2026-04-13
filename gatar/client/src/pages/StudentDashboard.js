@@ -60,8 +60,6 @@ function StudentDashboard() {
   const [messages, setMessages] = useState([]);
   const plugin = [HtmlRenderer()];
 
-  // vars
- //const [course, changeCourse] = useState(""); // change to student default
   const [course, changeCourse] = useState("CIS4904"); // change to student default
 
   useEffect(() => {
@@ -110,16 +108,11 @@ function StudentDashboard() {
     setNewCode('');
     setShowAddModal(false);
   }
-  // function handleAction(action) {
-  //   if (action === 'Upload')
-  //     {
-  //         setShowUploadModal(true);
-  //     }
-  // }
 
   // chatbot elements BD4F00
   const defaultSettings = {
     general: {embedded:true, primaryColor:"#9C9CC8", secondaryColor:"#9C9CC8"},
+    chatHistory: {disabled: false},
     header: { title: selectedClass?.code || "Select a class" }
   };
   const MAX_HISTORY = 10;
@@ -165,10 +158,6 @@ function StudentDashboard() {
       path: "chat",
       renderHtml: ["BOT"]
     }
-    // end_loop: {
-    //     message: "Connect LLM to this later.",
-    //     path: "end_loop"
-    // }
   }
 
   return (
@@ -214,38 +203,8 @@ function StudentDashboard() {
           <ChatBotProvider>
             <ChatBot plugins={plugin} settings={defaultSettings} flow={flow} key={chatKey}/>
           </ChatBotProvider>
-{/* 
-          <div className="class-actions-panel">
-            <div className="actions-header">
-              <PersonIcon />
-              <span className="actions-course-code">{selectedClass.code}</span>
-            </div>
-            <div className="actions-grid">
-              <button className="action-btn" onClick={() => handleAction('Upload')}>Upload</button>
-              <button className="action-btn" onClick={() => handleAction('Edit')}>Edit</button>
-              <button className="action-btn" onClick={() => handleAction('Manage Class')}>Manage<br />Class</button>
-              <button className="action-btn" onClick={() => handleAction('Publish')}>Publish</button>
-            </div>
-          </div> */}
 
         </div>
-        // <div className="center-screen">
-        //   <div className="left-side">
-        //     <div className="side-wrapper">
-        //       <h3>Class list:</h3>
-        //       <button type="button"
-        //       onClick={() => handleClick("mewo")}>mewo</button>
-        //       <button>test</button>
-        //       <button>class1</button>
-        //       <button>class2</button>
-        //     </div>
-        //   </div>
-        //   <div className="right-side">
-        //     <ChatBotProvider>
-        //       <ChatBot settings={settings} flow={flow}/>
-        //     </ChatBotProvider>
-        //   </div>
-        // </div>
       )} 
     </div>
   );
