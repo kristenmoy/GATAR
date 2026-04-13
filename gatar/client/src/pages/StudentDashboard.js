@@ -115,7 +115,7 @@ function StudentDashboard() {
 
   // chatbot elements BD4F00
   const defaultSettings = {
-    general: {embedded:true, primaryColor:"#9C9CC8", secondaryColor:"#9C9CC8"},
+    general: {embedded:true, primaryColor:"#545496", secondaryColor:"#545496"},
     header: { title: selectedClass?.code || "Select a class" }
   };
   const MAX_HISTORY = 10;
