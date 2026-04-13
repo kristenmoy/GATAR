@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import './ManageClass.css';
 import './ProfDashboard.css';
 
-export default function ManageClassModal({ onClose, classCode }) {
+export default function ManageClassModal({ onClose, classCode, embedded}) {
   const [files, setFiles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [removing, setRemoving] = useState(null);
@@ -26,6 +26,12 @@ export default function ManageClassModal({ onClose, classCode }) {
   }, [classCode]);
 
   async function handleRemove(fileId) {
+    const confirmDelete = window.confirm(
+    "Are you sure you want to delete this file?"
+  );
+
+  if (!confirmDelete) return;
+    
     setRemoving(fileId);
 
     try {
@@ -51,16 +57,23 @@ export default function ManageClassModal({ onClose, classCode }) {
   const fileRows = files.map(file => {
     const cleanName = file.name.split("_").pop();
 
-    return React.createElement("div", { key: file.id, className: "manage-file-row" },
-      React.createElement("div", { className: "file-left" },
-        React.createElement("span", { className: "manage-pdf-icon" }, "📄"),
-        React.createElement("span", { className: "manage-file-name" }, cleanName), // 👈 USE IT HERE
-        React.createElement("button", {
-          className: "manage-remove-btn",
-          onClick: () => handleRemove(file.id),
-          disabled: removing === file.id
-        }, "Remove")
-      )
+    return (
+      <div key={file.id} className="manage-file-row">
+        
+        <div className="file-left">
+          <span className="manage-pdf-icon">📄</span>
+          <span className="manage-file-name">{cleanName}</span>
+        </div>
+
+        <button
+          className="manage-remove-btn trash-btn"
+          onClick={() => handleRemove(file.id)}
+          disabled={removing === file.id}
+        >
+          🗑
+        </button>
+
+      </div>
     );
   });
 
@@ -70,19 +83,46 @@ export default function ManageClassModal({ onClose, classCode }) {
   } else if (files.length === 0) {
     bodyContent = React.createElement("p", { className: "manage-empty" }, "No files uploaded yet.");
   } else {
-    bodyContent = React.createElement("ul", { className: "manage-file-list" }, ...fileRows);
+    bodyContent = (
+      <div className="manage-file-list">
+        {fileRows}
+      </div>
+    );
   }
 
-  return React.createElement(
-    "div", { className: "modal-backdrop", onClick: onClose },
-    React.createElement(
-      "div", { className: "modal-card manage-modal-card", onClick: e => e.stopPropagation() },
-      React.createElement("h3", null, `Manage Class — ${classCode}`),
-      bodyContent,
-      React.createElement(
-        "div", { className: "modal-actions", style: { marginTop: "20px" } },
-        React.createElement("button", { className: "modal-cancel", onClick: onClose }, "Close")
-      )
-    )
+  const content = (
+  <div className="manage-class-content">
+    <div className="file-scroll-area">
+      {bodyContent}
+    </div>
+  </div>
+);
+
+  if (embedded) {
+    return content;
+  }
+
+  return (
+    <div className="modal-backdrop" onClick={onClose}>
+      <div className="modal-card manage-modal-card" onClick={e => e.stopPropagation()}>
+        {content}
+        <div className="modal-actions" style={{ marginTop: "20px" }}>
+          <button className="modal-cancel" onClick={onClose}>Close</button>
+        </div>
+      </div>
+    </div>
   );
+
+  // return React.createElement(
+  //   "div", { className: "modal-backdrop", onClick: onClose },
+  //   React.createElement(
+  //     "div", { className: "modal-card manage-modal-card", onClick: e => e.stopPropagation() },
+  //     React.createElement("h3", null, `Manage Class — ${classCode}`),
+  //     bodyContent,
+  //     React.createElement(
+  //       "div", { className: "modal-actions", style: { marginTop: "20px" } },
+  //       React.createElement("button", { className: "modal-cancel", onClick: onClose }, "Close")
+  //     )
+  //   )
+  // );
 }

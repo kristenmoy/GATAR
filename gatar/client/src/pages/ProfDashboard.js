@@ -22,7 +22,8 @@ export default function ProfDashboard() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [newCode, setNewCode] = useState('');
   const [showUploadModal, setShowUploadModal] = useState(false);
-  const [showManageModal, setShowManageModal] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  // const [showManageModal, setShowManageModal] = useState(false);
   const { user } = useUser();
   const role = user?.unsafeMetadata?.role;
 
@@ -48,6 +49,16 @@ export default function ProfDashboard() {
       navigate('/profLogin');
     }
   }, [isSignedIn, isLoaded, navigate]);
+
+  useEffect(() => {
+    if (uploading) {
+      document.body.classList.add("uploading");
+    } else {
+      document.body.classList.remove("uploading");
+    }
+
+    return () => document.body.classList.remove("uploading");
+  }, [uploading]);
 
   if (role && role !== 'professor') {
     navigate('/');
@@ -96,16 +107,16 @@ export default function ProfDashboard() {
     }
   }
 
-  function handleAction(action) {
-    if (action === 'Upload')
-    {
-      setShowUploadModal(true);
-    }
-    else if(action === 'Manage Class')
-    {
-      setShowManageModal(true);
-    }
-  }
+  // function handleAction(action) {
+  //   if (action === 'Upload')
+  //   {
+  //     setShowUploadModal(true);
+  //   }
+  //   else if(action === 'Manage Class')
+  //   {
+  //     setShowManageModal(true);
+  //   }
+  // }
 
   return (
     <div className="prof-dashboard-root dashboard-background">
@@ -143,19 +154,52 @@ export default function ProfDashboard() {
                 <span className="sidebar-code">{cls.code}</span>
               </button>
             ))}
+            <button
+              className="sidebar-add-btn"
+              onClick={() => setShowAddModal(true)}
+            >
+              Add Class
+            </button>
           </div>
+          
 
-          <div className="class-actions-panel">
+          {/* <div className="class-actions-panel">
             <div className="actions-header">
               <PersonIcon />
               <span className="actions-course-code">{selectedClass.code}</span>
             </div>
-            <div className="actions-grid">
+            {/* <div className="actions-grid">
               <button className="action-btn" onClick={() => handleAction('Upload')}>Upload</button>
               <button className="action-btn" onClick={() => handleAction('Manage Class')}>Manage<br />Class</button>
-            </div>
-          </div>
+            </div> */}
+            {/* <button 
+              className="upload-btn"
+              onClick={() => setShowUploadModal(true)}
+            >
+              Upload
+            </button>
+              </div> */}
+          <div className="class-content-panel">
+            <div className="dashboard-header">
+              <div className="header-left">
+                <PersonIcon />
+                <span className="actions-course-code">{selectedClass?.code}</span>
+              </div>
 
+              <button
+              className="upload-btn"
+              onClick={() => setShowUploadModal(true)}
+              disabled={uploading}
+            >
+              {uploading ? "Uploading..." : "Upload"}
+            </button>
+            </div>
+
+            <ManageClassModal
+              classCode={selectedClass.code}
+              embedded={true}
+            />
+          </div>
         </div>
       )}
 
@@ -181,12 +225,14 @@ export default function ProfDashboard() {
         <UploadModal
             classCode={selectedClass.code}
             onClose={function() { setShowUploadModal(false); }}
+            setUploading={setUploading}
+            uploading={uploading}
         />
         )}
-      {showManageModal && React.createElement(ManageClassModal, {
+      {/* {showManageModal && React.createElement(ManageClassModal, {
         classCode: selectedClass.code,
         onClose: function() { setShowManageModal(false); }
-      })}
+      })} */}
     </div>
   );
 }
