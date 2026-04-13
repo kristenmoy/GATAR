@@ -1,5 +1,5 @@
 import React, { useState, useEffect} from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 import { useAuth, useUser } from '@clerk/clerk-react';
 import './ProfDashboard.css';
 import UploadModal from "./ProfUpload";

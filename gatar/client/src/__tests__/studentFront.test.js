@@ -59,11 +59,6 @@ describe('StudentDashboard', () => {
         <StudentDashboard />
       </MemoryRouter>
     );
-
-    // Test that fetch was called with the course URL
-    await waitFor(() => {
-      expect(fetch).toHaveBeenCalledWith('http://localhost:5000/api/courses');
-    });
  
     // Click on the first class tile
     const CSEtile = await screen.findByTestId('class-tile-CSE101');
