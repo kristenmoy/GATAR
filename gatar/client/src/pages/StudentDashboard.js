@@ -1,5 +1,6 @@
 import React, { useState, useEffect} from 'react';
 import { useNavigate } from 'react-router';
+//import ChatBot from "react-chatbotify";
 import { ChatBot, ChatBotProvider, useSettings, useFlow } from "react-chatbotify";
 import { useAuth, useUser } from '@clerk/clerk-react';
 import './StudentDashboard.css';
@@ -104,7 +105,7 @@ function StudentDashboard() {
   const MAX_HISTORY = 10;
   const flow = {
     start: {
-        message: () => { `Welcome to ${selectedClass.code}. How can I help you today?`; },
+        message: () => `Welcome to ${selectedClass.code}. How can I help you today?`,
         path: "chat"
     },
     chat: {

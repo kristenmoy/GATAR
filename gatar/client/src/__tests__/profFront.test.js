@@ -33,6 +33,7 @@ describe('ProfDashboard', () => {
         }
         if (url === 'http://localhost:5000/api/create-course') {
             return Promise.resolve({
+                ok: true,
                 json: () => Promise.resolve({ success: true }),
             });
         }
