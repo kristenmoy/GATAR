@@ -408,6 +408,10 @@ def create_app():
         (Title: ...
         Section Header: ...
         Page Number(s): ...)
+
+         FORMATTING RULES:
+        - Format the entire answer including citations in HTML, using <strong> for emphasis and <br> for new lines.
+        - Do not include any words related to HTML concepts unless specifically mentioned in the Context.
         """
 
         response = llm_client.responses.create(
