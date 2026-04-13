@@ -134,6 +134,8 @@ describe('StudentDashboard', () => {
 
     // Wait for dashboard to load
     expect(await screen.getByText('Welcome to CSE101. How can I help you today?')).toBeInTheDocument();
+    expect(await screen.getByRole('textbox')).toBeInTheDocument();
+    expect(await screen.getByRole('button', { name: 'Send' })).toBeInTheDocument();
     
     // Simulate user input in the chatbot
     const userInput = 'Mock question?';

@@ -41,7 +41,7 @@ const ChatBotMock = ({flow, ...props}) => {
         const userInput = input;
         setMsg(prev => [...prev, userMsg]);
         setInput("");
-        
+
         // chatbot reply
         const reply = await flow.chat.message({userInput});
         console.log("Chatbot reply:", reply);
@@ -55,6 +55,7 @@ const ChatBotMock = ({flow, ...props}) => {
         }
     };
 
+    // small chat body: messages, input field, send button
     return (
         <div data-testid="chatbot">
             <div>
