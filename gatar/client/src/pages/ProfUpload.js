@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 
-export default function UploadModal({ onClose, classCode }) {
+export default function UploadModal({ onClose, classCode, setUploading, uploading }) {
   const [file, setFile] = useState(null);
 
   function handleFileChange(e) {
@@ -11,6 +11,8 @@ export default function UploadModal({ onClose, classCode }) {
 
   async function handleSubmit() {
     if (!file) { alert("Please select a PDF file"); return; }
+
+    setUploading?.(true);
 
     const formData = new FormData();
     formData.append("file", file);
@@ -32,6 +34,9 @@ export default function UploadModal({ onClose, classCode }) {
       console.error(err);
       alert("Server error");
     }
+    finally{
+      setUploading?.(false);
+    }
   }
 
   return (
@@ -46,13 +51,27 @@ export default function UploadModal({ onClose, classCode }) {
           onChange={handleFileChange}
           style={{ display: "none" }}
         />
-        <label htmlFor="file-input" className="custom-file-button">
+        <label
+          htmlFor="file-input"
+          className="custom-file-button"
+          style={{
+            pointerEvents: uploading ? "none" : "auto",
+            opacity: uploading ? 0.6 : 1
+          }}
+        >
           {file ? file.name : "Choose PDF File"}
         </label>
 
         <div className="modal-actions">
           <button className="modal-cancel" onClick={onClose}>Cancel</button>
-          <button className="modal-confirm" onClick={handleSubmit}>Upload</button>
+          <button
+            className="modal-confirm"
+            onClick={handleSubmit}
+            disabled={uploading}
+            style={{ cursor: uploading ? "wait" : "pointer" }}
+          >
+            {uploading ? "Uploading..." : "Upload"}
+          </button>
         </div>
       </div>
     </div>
