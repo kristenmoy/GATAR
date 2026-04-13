@@ -385,6 +385,8 @@ def create_app():
 
         
         Give a citation for all of the context you used as a new line for each part in the form of Citation: Title: title, Section Header: section header, Page numbers: page numbers using the metadata from the {context}
+        Format the entire answer including citations in HTML, using <strong> for emphasis and <br> for new lines.
+        Include clear titles based on the {context} provided, and do not include any words related to HTML concepts unless specifically mentioned in the {context}. Specifically, do not include a title listed HTML Answer in any form unless the {context} explicitly includes a section header with the title HTML Answer. If the {context} does not include a section header with the title HTML Answer, do not include any titles in your answer.
         """
 
         response = llm_client.responses.create(

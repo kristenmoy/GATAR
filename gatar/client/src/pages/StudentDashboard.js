@@ -2,6 +2,8 @@ import React, { useState, useEffect} from 'react';
 import { useNavigate } from 'react-router-dom';
 import ChatBot, { ChatBotProvider, useSettings, useFlow } from "react-chatbotify";
 import { useAuth, useUser } from '@clerk/clerk-react';
+import HtmlRenderer from "@rcb-plugins/html-renderer";
+import MarkdownRenderer from "@rcb-plugins/markdown-renderer";
 import './StudentDashboard.css';
 
 /* for RT token streaming: 2 options - discuss w/ backend once API is back up
@@ -34,11 +36,12 @@ function PersonIcon() {
   );
 }
 
-function cleanFileNames(text) {
-  return text.replace(
-    /[a-f0-9-]{36}(_\d+)*_/g,
-    ""
-  );
+function processMessage(text) {
+  return text
+    // .replace(/```html\n?/g, '') // Remove ```html markers
+    // .replace(/```\n?/g, '') // Remove any remaining ``` markers
+    // .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') // Convert **text** to <strong>text</strong>
+    // .replace(/[a-f0-9-]{36}(_\d+)*_/g, ""); // Remove UUID patterns from filenames
 }
 
 function StudentDashboard() {
@@ -54,7 +57,8 @@ function StudentDashboard() {
   const [showUploadModal, setShowUploadModal] = useState(false);
   const { user } = useUser();
   const role = user?.unsafeMetadata?.role;
-   const [messages, setMessages] = useState([]);
+  const [messages, setMessages] = useState([]);
+  const plugin = [HtmlRenderer()];
 
   // vars
  //const [course, changeCourse] = useState(""); // change to student default
@@ -148,7 +152,8 @@ function StudentDashboard() {
 
         const data = await res.json();
         const rawReply = data.answer || "Sorry, something went wrong.";
-        const chatReply = cleanFileNames(rawReply);
+        //const chatReply = processMessage(rawReply);
+        const chatReply = rawReply;
         
         setMessages([
           ...updatedMessages,
@@ -157,7 +162,8 @@ function StudentDashboard() {
 
         return chatReply;
       },
-      path: "chat"
+      path: "chat",
+      renderHtml: ["BOT"]
     }
     // end_loop: {
     //     message: "Connect LLM to this later.",
@@ -206,7 +212,7 @@ function StudentDashboard() {
           </div>
 
           <ChatBotProvider>
-            <ChatBot settings={defaultSettings} flow={flow} key={chatKey}/>
+            <ChatBot plugins={plugin} settings={defaultSettings} flow={flow} key={chatKey}/>
           </ChatBotProvider>
 {/* 
           <div className="class-actions-panel">
