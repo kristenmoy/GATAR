@@ -25,6 +25,7 @@ jest.mock('react-chatbotify', () => {
     return <div data-testid="chatbot">ChatBot Mock</div>;
   };
   return {
+    __esModule: true,
     ...actual,
     default: ChatBotMock,
     ChatBot: ChatBotMock,

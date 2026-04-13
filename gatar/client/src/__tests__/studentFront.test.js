@@ -1,5 +1,6 @@
 import StudentDashboard from '../pages/StudentDashboard.js';
 import { fireEvent, screen, render, waitFor } from '@testing-library/react';
+//import ChatBot, {ChatBotProvider} from 'react-chatbotify';
 import { MemoryRouter } from 'react-router';
 
 // Mock fetch globally
@@ -31,6 +32,12 @@ describe('StudentDashboard', () => {
   });
 
   it('renders class tiles from API data', async () => {
+    // console.log("react-chatbotify imports:",
+    //   typeof ChatBot,
+    //   ChatBot,
+    //   typeof ChatBotProvider,
+    //   ChatBotProvider
+    // );
     render(
       <MemoryRouter>
         <StudentDashboard />
