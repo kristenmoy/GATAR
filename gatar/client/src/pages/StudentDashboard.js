@@ -5,17 +5,6 @@ import ChatBot, { ChatBotProvider, useSettings, useFlow } from "react-chatbotify
 import { useAuth, useUser } from '@clerk/clerk-react';
 import './StudentDashboard.css';
 
-/* for RT token streaming: 2 options - discuss w/ backend once API is back up
-  1.  directly messing with chunking: https://react-chatbotify.com/docs/v2/examples/real_time_stream
-  2.  simulating stream from pre-written text: in const settings, do botBubble: {simulateStream:true, streamSpeed:20}
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
-// import { Link } from 'react-router-dom';
-import ChatBot, { ChatBotProvider } from "react-chatbotify";
-import { useState, useEffect } from 'react';
-import { useAuth, useUser } from '@clerk/clerk-react';
-*/
-
 function PersonIcon() {
   return (
     <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" className="person-icon">
@@ -35,9 +24,7 @@ function cleanFileNames(text) {
 function StudentDashboard() {
   const { isSignedIn, isLoaded } = useAuth();
   const navigate = useNavigate();
-  //const {restartFlow, hasFlowStarted} = useFlow();
   const [chatKey, setChatKey] = useState(0);
-  //const {settings, updateSettings} = useSettings();
   const [classes, setClasses] = useState([]);
   const [selectedClass, setSelectedClass] = useState("");
   const [showAddModal, setShowAddModal] = useState(false);
@@ -84,19 +71,6 @@ function StudentDashboard() {
     );
   }
 
-
-  // functions
-  const handleClick = (code) => {
-    changeCourse(code);
-  }
-
-  // functions
-  function handleAddClass() {
-    setClasses(prev => [...prev, { id: classes.length + 1, code: newCode.trim().toUpperCase() }]);
-    setNewCode('');
-    setShowAddModal(false);
-  }
-
   // chatbot elements BD4F00
   const defaultSettings = {
     general: {embedded:true, primaryColor:"#545496", secondaryColor:"#545496"},
@@ -105,7 +79,7 @@ function StudentDashboard() {
   const MAX_HISTORY = 10;
   const flow = {
     start: {
-        message: () => `Welcome to ${selectedClass.code}. How can I help you today?`,
+        message: `Welcome to ${selectedClass.code}. How can I help you today?`,
         path: "chat"
     },
     chat: {

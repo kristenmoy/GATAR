@@ -1,6 +1,5 @@
 import StudentDashboard from '../pages/StudentDashboard.js';
 import { fireEvent, screen, render, waitFor } from '@testing-library/react';
-//import ChatBot, {ChatBotProvider} from 'react-chatbotify';
 import { MemoryRouter } from 'react-router';
 
 // Mock fetch globally
@@ -32,12 +31,6 @@ describe('StudentDashboard', () => {
   });
 
   it('renders class tiles from API data', async () => {
-    // console.log("react-chatbotify imports:",
-    //   typeof ChatBot,
-    //   ChatBot,
-    //   typeof ChatBotProvider,
-    //   ChatBotProvider
-    // );
     render(
       <MemoryRouter>
         <StudentDashboard />
@@ -103,7 +96,7 @@ describe('StudentDashboard', () => {
     expect(sidebarButtons).toHaveLength(mockCourses.length);
 
     // Check that the chatbot is rendered
-    expect(screen.getByTestId('chatbot')).toBeInTheDocument();
+    expect(await screen.getByText('Welcome to CSE101. How can I help you today?')).toBeInTheDocument();
   });
 
   it('switches classes when clicking sidebar buttons', async () => {
@@ -113,28 +106,57 @@ describe('StudentDashboard', () => {
       </MemoryRouter>
     );
 
-    // Wait for classes to load and select first class
-    await waitFor(() => {
-      expect(screen.getByTestId('class-tile-CSE101')).toBeInTheDocument();
-    });
-
-    // Select CSE101
-    fireEvent.click(screen.getByTestId('class-tile-CSE101'));
+    // Click on the first class tile
+    const CSEtile = await screen.findByTestId('class-tile-CSE101');
+    fireEvent.click(CSEtile);
 
     // Wait for dashboard to load
-    await waitFor(() => {
-      expect(screen.getByTestId('chatbot')).toBeInTheDocument();
-    });
+    expect(await screen.getByText('Welcome to CSE101. How can I help you today?')).toBeInTheDocument();
 
     // Now click on MATH202 in the sidebar
     const math202Button = screen.getByRole('button', { name: 'MATH202' });
     fireEvent.click(math202Button);
 
-    // The chatbot should still be there (class switched)
-    expect(screen.getByTestId('chatbot')).toBeInTheDocument();
+    // The chatbot should now show MATH202 content
+    expect(await screen.getByText('Welcome to MATH202. How can I help you today?')).toBeInTheDocument();
+  });
 
-    // Check that the active class button has the 'active' class
-    const activeButton = screen.getByRole('button', { name: 'MATH202' });
-    expect(activeButton).toHaveClass('active');
+  it('accepts user input, calls chat API, and replies', async () => {
+    render(
+      <MemoryRouter>
+        <StudentDashboard />
+      </MemoryRouter>
+    );
+
+    // Click on the first class tile
+    const CSEtile = await screen.findByTestId('class-tile-CSE101');
+    fireEvent.click(CSEtile);
+
+    // Wait for dashboard to load
+    expect(await screen.getByText('Welcome to CSE101. How can I help you today?')).toBeInTheDocument();
+    
+    // Simulate user input in the chatbot
+    const userInput = 'Mock question?';
+    const inputField = screen.getByRole('textbox');
+    fireEvent.change(inputField, { target: { value: userInput } });
+    fireEvent.keyDown(inputField, { key: 'Enter', code: 'Enter' });
+
+    // Check that API was called w/ params
+    await waitFor(() => {
+      expect(fetch).toHaveBeenCalledWith("http://127.0.0.1:5000/api/chat", {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          messages: [{role: "user", content: userInput}],
+          course_code: 'CSE101'
+        })
+      });
+    });
+
+    // Check message displays: user, bot reply
+    expect(await screen.findByText(userInput)).toBeInTheDocument();
+    expect(await screen.findByText('Mock response')).toBeInTheDocument();
   });
 });
