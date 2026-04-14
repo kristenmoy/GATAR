@@ -38,8 +38,8 @@ describe('ProfDashboard', () => {
                 });
             }
             if (url === 'http://localhost:5000/api/upload-pdf') {
-                // this may be bs, talk to group
-                // how in depth is formData?
+                // have to hard code an add; unlike add class which is handled in profdash,
+                // adding a pdf is entirely backend
                 //console.log('Mock files:', mockFiles);
                 const fileName = 'file4.pdf';
                 mockFiles.push({ name: fileName, id: 4 });
