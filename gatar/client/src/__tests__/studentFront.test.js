@@ -8,7 +8,6 @@ global.fetch = jest.fn();
 describe('StudentDashboard', () => {
   // Mock class data
   const mockCourses = ['CSE101', 'MATH202', 'PHYS301'];
-  const failedCourses = [];
 
   // Reset fetch mock before each test
   beforeEach(() => {

@@ -44,7 +44,7 @@ const ChatBotMock = ({flow, ...props}) => {
 
         // chatbot reply
         const reply = await flow.chat.message({userInput});
-        console.log("Chatbot reply:", reply);
+        //console.log("Chatbot reply:", reply);
         const botMsg = {role: "assistant", content: reply};
         setMsg(prev => [...prev, botMsg]);
     };
