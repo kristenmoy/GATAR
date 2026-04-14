@@ -1,29 +1,9 @@
 import React, { useState, useEffect} from 'react';
 import { useNavigate } from 'react-router-dom';
-import ChatBot, { ChatBotProvider, useSettings, useFlow } from "react-chatbotify";
-import { useAuth, useUser } from '@clerk/clerk-react';
-import './StudentDashboard.css';
-
-/* for RT token streaming: 2 options - discuss w/ backend once API is back up
-  1.  directly messing with chunking: https://react-chatbotify.com/docs/v2/examples/real_time_stream
-  2.  simulating stream from pre-written text: in const settings, do botBubble: {simulateStream:true, streamSpeed:20}
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
-// import { Link } from 'react-router-dom';
 import ChatBot, { ChatBotProvider } from "react-chatbotify";
-import { useState, useEffect } from 'react';
 import { useAuth, useUser } from '@clerk/clerk-react';
-
-/* Current issues:
-1. figure out way to make the course change palpable
-   - restart chatbot UI, updateSettings to correct chatbot?
-   - switch chatbot/page entirely?
-2. link chatbot to UI [PRIORITY]
-   - talk to backend about that
-3. access student courses to reflect that in chatbot options
-   - wireframe: showed options already grabbed from student info + add a class opt.
-*/
-
+import HtmlRenderer from "@rcb-plugins/html-renderer";
+import './StudentDashboard.css';
 
 function PersonIcon() {
   return (
@@ -34,31 +14,16 @@ function PersonIcon() {
   );
 }
 
-function cleanFileNames(text) {
-  return text.replace(
-    /[a-f0-9-]{36}(_\d+)*_/g,
-    ""
-  );
-}
-
 function StudentDashboard() {
   const { isSignedIn, isLoaded } = useAuth();
   const navigate = useNavigate();
-  const {restartFlow, hasFlowStarted} = useFlow();
   const [chatKey, setChatKey] = useState(0);
-  const {settings, updateSettings} = useSettings();
   const [classes, setClasses] = useState([]);
   const [selectedClass, setSelectedClass] = useState("");
-  const [showAddModal, setShowAddModal] = useState(false);
-  const [newCode, setNewCode] = useState('');
-  const [showUploadModal, setShowUploadModal] = useState(false);
   const { user } = useUser();
   const role = user?.unsafeMetadata?.role;
-   const [messages, setMessages] = useState([]);
-
-  // vars
- //const [course, changeCourse] = useState(""); // change to student default
-  const [course, changeCourse] = useState("CIS4904"); // change to student default
+  const [messages, setMessages] = useState([]);
+  const plugin = [HtmlRenderer()];
 
   useEffect(() => {
     fetch("http://localhost:5000/api/courses")
@@ -88,34 +53,16 @@ function StudentDashboard() {
     return(
       <div className="dashboard-background">
         <div className="center-screen">
-          <h1>Oh no! You broke something! Please go back to the login page.</h1>
+          <h1>Oh no! Give us a moment to get you redirected.</h1>
         </div>
       </div>
     );
   }
 
-
-  // functions
-  const handleClick = (code) => {
-    changeCourse(code);
-  }
-
-  // functions
-  function handleAddClass() {
-    setClasses(prev => [...prev, { id: classes.length + 1, code: newCode.trim().toUpperCase() }]);
-    setNewCode('');
-    setShowAddModal(false);
-  }
-  // function handleAction(action) {
-  //   if (action === 'Upload')
-  //     {
-  //         setShowUploadModal(true);
-  //     }
-  // }
-
   // chatbot elements BD4F00
   const defaultSettings = {
-    general: {embedded:true, primaryColor:"#545496", secondaryColor:"#545496"},
+    general: {embedded:true, primaryColor:"#9C9CC8", secondaryColor:"#9C9CC8"},
+    chatHistory: {disabled: true, storageType: "NONE"},
     header: { title: selectedClass?.code || "Select a class" }
   };
   const MAX_HISTORY = 10;
@@ -148,7 +95,7 @@ function StudentDashboard() {
 
         const data = await res.json();
         const rawReply = data.answer || "Sorry, something went wrong.";
-        const chatReply = cleanFileNames(rawReply);
+        const chatReply = rawReply;
         
         setMessages([
           ...updatedMessages,
@@ -157,12 +104,9 @@ function StudentDashboard() {
 
         return chatReply;
       },
-      path: "chat"
+      path: "chat",
+      renderHtml: ["BOT"]
     }
-    // end_loop: {
-    //     message: "Connect LLM to this later.",
-    //     path: "end_loop"
-    // }
   }
 
   return (
@@ -194,7 +138,7 @@ function StudentDashboard() {
                 className={`sidebar-class-btn ${selectedClass.id === cls.id ? 'active' : ''}`}
                 onClick={() => {
                   setSelectedClass(cls);
-                  setChatKey(prevKey => prevKey-1);
+                  setChatKey(prevKey => prevKey+1);
                   setMessages([])
                 }}
                 title={cls.code}
@@ -205,41 +149,11 @@ function StudentDashboard() {
             ))}
           </div>
 
-          <ChatBotProvider>
-            <ChatBot settings={defaultSettings} flow={flow} key={chatKey}/>
+          <ChatBotProvider key={chatKey}>
+            <ChatBot plugins={plugin} settings={defaultSettings} flow={flow}/>
           </ChatBotProvider>
-{/* 
-          <div className="class-actions-panel">
-            <div className="actions-header">
-              <PersonIcon />
-              <span className="actions-course-code">{selectedClass.code}</span>
-            </div>
-            <div className="actions-grid">
-              <button className="action-btn" onClick={() => handleAction('Upload')}>Upload</button>
-              <button className="action-btn" onClick={() => handleAction('Edit')}>Edit</button>
-              <button className="action-btn" onClick={() => handleAction('Manage Class')}>Manage<br />Class</button>
-              <button className="action-btn" onClick={() => handleAction('Publish')}>Publish</button>
-            </div>
-          </div> */}
 
         </div>
-        // <div className="center-screen">
-        //   <div className="left-side">
-        //     <div className="side-wrapper">
-        //       <h3>Class list:</h3>
-        //       <button type="button"
-        //       onClick={() => handleClick("mewo")}>mewo</button>
-        //       <button>test</button>
-        //       <button>class1</button>
-        //       <button>class2</button>
-        //     </div>
-        //   </div>
-        //   <div className="right-side">
-        //     <ChatBotProvider>
-        //       <ChatBot settings={settings} flow={flow}/>
-        //     </ChatBotProvider>
-        //   </div>
-        // </div>
       )} 
     </div>
   );
