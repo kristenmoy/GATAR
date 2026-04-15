@@ -5,9 +5,10 @@
 import '@testing-library/jest-dom';
 import React, { useState, useEffect } from 'react';
 
-// studentFront.test.js - tests for StudentDashboard.js
 import { TextEncoder } from 'util';
 Object.assign(global, { TextEncoder });
+
+// default sign in : student acc
 jest.mock('@clerk/clerk-react', () => ({
     useAuth: () => ({ isSignedIn: true, isLoaded: true }),
     useUser: () => ({ user: { unsafeMetadata: { role: 'student' } } }),

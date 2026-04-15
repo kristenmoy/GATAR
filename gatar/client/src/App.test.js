@@ -1,20 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import App from './pages/App';
 
-jest.mock('react-router-dom', () => {
-  const React = require('react');
-
-  return {
-    BrowserRouter: ({ children }) => <div data-testid="router">{children}</div>,
-    Routes: ({ children }) => <div data-testid="routes">{children}</div>,
-    Route: ({ path, element }) => (
-      <div data-testid={`route-${path === '/' ? 'root' : path.slice(1)}`}>{element}</div>
-    ),
-    Link: ({ children, to }) => <a href={to}>{children}</a>,
-    useNavigate: () => jest.fn(),
-  };
-}, { virtual: true });
-
 jest.mock('@clerk/clerk-react', () => ({
   SignedIn: ({ children }) => <>{children}</>,
   SignedOut: ({ children }) => <>{children}</>,

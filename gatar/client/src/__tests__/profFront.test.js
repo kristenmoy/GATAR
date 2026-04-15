@@ -9,7 +9,7 @@ import { MemoryRouter } from 'react-router';
 // Mock fetch globally
 global.fetch = jest.fn();
 
-// override clerk mock from student -> prof
+// Mock clerk auth = prof acc
 jest.mock('@clerk/clerk-react', () => ({
     useAuth: () => ({ isSignedIn: true, isLoaded: true }),
     useUser: () => ({ user: { unsafeMetadata: { role: 'professor' } } }),
