@@ -13,6 +13,20 @@ jest.mock('@clerk/clerk-react', () => ({
     useUser: () => ({ user: { unsafeMetadata: { role: 'student' } } }),
 }));
 
+jest.mock('react-router-dom', () => {
+  const React = require('react');
+
+  return {
+    BrowserRouter: ({ children }) => <div data-testid="router">{children}</div>,
+    Routes: ({ children }) => <div data-testid="routes">{children}</div>,
+    Route: ({ path, element }) => (
+      <div data-testid={`route-${path === '/' ? 'root' : path.slice(1)}`}>{element}</div>
+    ),
+    Link: ({ children, to }) => <a href={to}>{children}</a>,
+    useNavigate: () => jest.fn(),
+  };
+}, { virtual: true });
+
 const mockUsedNavigate = jest.fn();
 jest.mock('react-router', () => ({
     ...jest.requireActual('react-router'),
